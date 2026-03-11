@@ -24,7 +24,20 @@ Homestead.yaml
 npm-debug.log
 Thumbs.db
 yarn-error.log
-
+/.env
+/.env.backup
+/.env.local
+/.env.*.local
+/.phpunit.result.cache
+/.phpunit.cache
+/.phpactor.json
+/.vscode
+/.idea
+/.nova
+/.fleet
+/.zed
+/.phpunit.cache
+/.phpunit.result.cache  
 
 
 
