@@ -120,7 +120,7 @@
     <div class="relative w-full max-w-lg bg-white rounded-3xl shadow-2xl overflow-hidden modal-content">
 
         <form id="ActionForm"
-              action="{{ route(($external->status === 'pending' ? 'externals.forward' : ($external->status === 'forwarded' ? 'externals.endorse' : 'externals.assign' )), $external->id) }}"
+              action="{{ route('externals.assign', $external->id) }}"
               method="POST"
               onsubmit="return validateActionForm()">
 
@@ -130,23 +130,13 @@
             <div class="p-8">
                 <div class="flex items-center justify-between mb-6">
                     <h3 class="text-xl font-bold text-slate-900">
-                        {{ $external->status === 'pending' ? 'Forward to ORD' : ($external->status === 'forwarded' ? 'Endorse to Division' : ($external->status === 'endorsed' ? 'Assign to Personnel' : 'Assign to Colleague')) }}
+                        Assign to Collegue
                     </h3>
                     <button type="button" onclick="closeModal()" class="text-slate-400 hover:text-slate-600">
                         <i data-lucide="x" class="w-6 h-6"></i>
                     </button>
                 </div>
-
-                @if($external->status === 'forwarded')
-                    <select id="division"
-                            name="division"
-                            class="block w-full mb-4"
-                            required>
-                        <option value="" disabled selected>Select Division</option>
-                        <option value="TOD">Technical Operations Division</option>
-                        <option value="AFD">Admin and Finance Division</option>
-                    </select>
-                @elseif($external->status === 'endorsed' || $external->status === 'assigned' || $external->status === 'accepted')
+                @if($external->status === 'pending' || $external->status === 'assigned' || $external->status === 'accepted')
                     <select id="personnel"
                             name="personnel"
                             class="block w-full mb-4"
@@ -232,7 +222,7 @@
         };
 
         function validateActionForm() {
-            @if($external->status === 'forwarded')
+            @if($external->status === 'pending')
             const division = document.getElementById('division');
 
             if (division && !division.value) {

@@ -40,7 +40,7 @@
                                 $stat = "";
                                 $color = "";
                                 switch($external->status) {
-                                    case "endorsed": $stat = 'For Assignment'; $color = "rose"; break;
+                                    case "pending": $stat = 'For Assignment'; $color = "rose"; break;
                                     case "assigned": $stat = 'Pending Acceptance'; $color = "red"; break;
                                     case "accepted": $stat = 'Accepted'; $color = "green"; break;
                                 }
@@ -97,7 +97,7 @@
                 </h3>
                 <p class="text-slate-500 font-medium max-w-sm mt-3">
                     @if($search == '' && $priority == '')
-                        There are no external requests pending recording and forwarding at the moment. You can monitor endorsed requests in the Monitoring section.
+                        There are no external requests pending at the moment. You can monitor requests in the Monitoring section.
                     @endif
                 </p>
             </div>

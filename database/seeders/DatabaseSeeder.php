@@ -153,18 +153,6 @@ class DatabaseSeeder extends Seeder
                 "user_id" => 9, 
             ],
             [
-                "setting" => "forwarder", 
-                "user_id" => 9, 
-            ],
-            [
-                "setting" => "endorser", 
-                "user_id" => 1, 
-            ],
-            [
-                "setting" => "endorser", 
-                "user_id" => 2, 
-            ],
-            [
                 "setting" => "monitorer", 
                 "user_id" => 1, 
             ],

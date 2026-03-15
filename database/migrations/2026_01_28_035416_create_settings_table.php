@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('settings', function (Blueprint $table) {
             $table->id();
-            $table->enum('setting', ['director', 'ard', 'afdchief', 'todchief', 'receiver', 'forwarder', 'endorser', 'monitorer', 'super']);
+            $table->enum('setting', ['director', 'ard', 'afdchief', 'todchief', 'receiver', 'monitorer', 'super']);
             $table->foreignId('user_id')->constrained('users')->ondelete('cascade');
             $table->timestamps();
         });

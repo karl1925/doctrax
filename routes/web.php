@@ -2,16 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordController;
-use App\Http\Controllers\{GoogleOAuthController, DashboardController, DocumentController, ExternalController, SettingController, ProfileController};
-
-Route::get('/auth/google/redirect', [GoogleOAuthController::class, 'redirectToGoogle'])->name('google.redirect');
-Route::get('/auth/google/callback', [GoogleOAuthController::class, 'handleGoogleCallback'])->name('google.callback');
-
-/*
-|--------------------------------------------------------------------------
-| Web Routes
-|--------------------------------------------------------------------------
-*/
+use App\Http\Controllers\{NotificationController, GoogleOAuthController, DashboardController, DocumentController, ExternalController, SettingController, ProfileController};
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -20,8 +11,66 @@ Route::get('/', function () {
     return view('auth.login');
 });
 
+Route::get('/auth/google/redirect', [GoogleOAuthController::class, 'redirectToGoogle'])->name('google.redirect');
+Route::get('/auth/google/callback', [GoogleOAuthController::class, 'handleGoogleCallback'])->name('google.callback');
+
 // Authenticated Routes
 Route::middleware(['auth', 'verified'])->group(function () {
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readall');
+    Route::delete('/notifications/clear-read', function () {
+        auth()->user()->notifications()->whereNotNull('read_at')->delete();
+        return response()->json(['ok' => true]);
+    })->name('notifications.clearRead');
+
+    Route::get('/notifications/all', function() {
+        $user = auth()->user();
+        $notifications = auth()->user()->notifications
+            ->sortByDesc('created_at')
+            ->take(10)
+            ->map(function($n) {
+                return [
+                    'id' => $n->id,
+                    'type' => $n->data['subject'],
+                    'subject' => \App\Models\External::find($n->data['request_id'])->subject,
+                    'message' => $n->data['message'] ?? '',
+                    'created_by' => \App\Models\User::find($n->data['created_by'])?->name ?? '',
+                    'url' => $n->data['url'] ?? '#',
+                    'time' => $n->created_at->diffForHumans(),
+                    'is_new' => is_null($n->read_at),
+                ];
+            })
+            ->values() // resets keys 0,1,2...
+            ->all();   // converts Collection to plain array
+
+        return response()->json([
+            'unread_count' => auth()->user()->unreadNotifications->count(),
+            'notifications' => $notifications,
+        ]);
+    })->name('notifications.all');
+
+    Route::get('/notifications/unread', function() {
+        $notifications = auth()->user()->unreadNotifications->take(10)->map(function($n) {
+            return [
+                'subject' => $n->data['subject'] ?? 'No subject',
+                'message' => $n->data['message'] ?? '',
+                'url' => $n->data['url'] ?? '#',
+                'time' => $n->created_at->diffForHumans(),
+            ];
+        });
+
+        return response()->json([
+            'unread_count' => auth()->user()->unreadNotifications->count(),
+            'notifications' => $notifications,
+        ]);
+
+    })->name('notifications.unread');
+
+    Route::delete('/notifications/clear-all', function () {
+        auth()->user()->notifications()->delete(); // deletes all notifications
+        return redirect()->back()->with('success', 'All notifications cleared.');
+    })->name('notifications.clearAll');
+
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/manual', [DashboardController::class, 'manual'])->name('manual');
 
@@ -51,9 +100,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/att/{attachment}/preview', [DocumentController::class, 'preview'])->name('attachments.preview'); 
     });   
     Route::prefix('externals')->group(function () {
-        Route::get('/recording', [ExternalController::class, 'recording'])->name('externals.recording');
         Route::get('/monitoring', [ExternalController::class, 'monitoring'])->name('externals.monitoring');
-        Route::get('/endorsing', [ExternalController::class, 'endorsing'])->name('externals.endorsing');
         Route::get('/mytasks', [ExternalController::class, 'myTasks'])->name('externals.mytasks');
         Route::get('/completed', [ExternalController::class, 'completed'])->name('externals.completed');
         Route::get('/archive', [ExternalController::class, 'archive'])->name('externals.completed.archive');
@@ -62,11 +109,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/monitoring/{external}', [ExternalController::class, 'show'])->name('externals.monitoring.show');
         Route::get('/completed/{external}', [ExternalController::class, 'show'])->name('externals.completed.show');
         Route::get('/archive/{external}', [ExternalController::class, 'show'])->name('externals.completed.archive.show');
-        Route::get('/recording/{external}/verify', [ExternalController::class, 'verify'])->name('externals.recording.verify');
-        Route::get('/endorsing/{external}/verify', [ExternalController::class, 'verify'])->name('externals.endorsing.verify');
         Route::get('/mytasks/{external}/verify', [ExternalController::class, 'verify'])->name('externals.mytasks.verify');
-        Route::put('/{external}/forward', [ExternalController::class, 'forward'])->name('externals.forward');
-        Route::put('/{external}/endorse', [ExternalController::class, 'endorse'])->name('externals.endorse');
+        Route::post('/{external}/followup', [ExternalController::class, 'followUp'])->name('externals.followup');
         Route::put('/{external}/accept', [ExternalController::class, 'accept'])->name('externals.accept');
         Route::put('/{external}/assign', [ExternalController::class, 'assign'])->name('externals.assign');
         Route::put('/{external}/complete', [ExternalController::class, 'complete'])->name('externals.complete');

@@ -72,14 +72,6 @@
                             <i class="fa-solid fa-download text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
                             Receivers
                         </a>
-                        <a href="#Forwarder" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-white rounded-xl font-bold transition-all group">
-                            <i class="fa-solid fa-forward text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
-                            Forwarders
-                        </a>
-                        <a href="#Endorser" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-white rounded-xl font-bold transition-all group">
-                            <i class="fa-solid fa-stamp text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
-                            Endorsers
-                        </a>
                         <a href="#Monitorer" class="flex items-center gap-3 px-4 py-3 text-slate-500 hover:text-slate-900 hover:bg-white rounded-xl font-bold transition-all group">
                             <i class="fa-solid fa-globe text-slate-400 group-hover:text-indigo-500 transition-colors"></i>
                             Global Monitoring

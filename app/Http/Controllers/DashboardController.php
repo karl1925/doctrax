@@ -13,12 +13,10 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $userId = $user->id;
-        $exstats = External::selectRaw("
-            SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending,
-            SUM(CASE WHEN status = 'forwarded' THEN 1 ELSE 0 END) AS forwarded,
-            SUM(CASE WHEN status = 'endorsed' AND division = 'AFD' THEN 1 ELSE 0 END) AS endorsedAFD,
-            SUM(CASE WHEN status = 'endorsed' AND division = 'TOD' THEN 1 ELSE 0 END) AS endorsedTOD
-        ")->first()->toArray();
+        $exstats = External::withoutTrashed()
+            ->selectRaw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending")
+            ->first()
+            ->toArray();
         $stats = Document::selectRaw("
             COUNT(CASE WHEN EXISTS (
                 SELECT 1 FROM document_participants dp
@@ -40,7 +38,7 @@ class DashboardController extends Controller
         ->first()
         ->toArray();
 
-        $activeRequests = External::where('status', '!=', 'completed');
+        $activeRequests = External::withoutTrashed()->where('status', '!=', 'completed');
         if (!auth()->user()->canMonitorRequests()) {
             $activeRequests->where(function ($query) {
                 $query->where('creator_id', auth()->id())

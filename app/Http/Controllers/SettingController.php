@@ -11,7 +11,7 @@ class SettingController extends Controller
     public function organization()
     {
         $users = User::withoutTrashed()->orderBy('name')->get();
-        $roles = ['receiver', 'forwarder', 'endorser', 'monitorer', 'super'];
+        $roles = ['receiver', 'monitorer', 'super'];
         $usersByRole = [];
         foreach ($roles as $role) {
             $usersByRole[ucfirst($role)] = User::withoutTrashed()->whereIn('id', Setting::where('setting', $role)->pluck('user_id'))

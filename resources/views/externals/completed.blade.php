@@ -56,7 +56,7 @@
                                     $stat = "";
                                     $color = "";
                                     switch($external->status) {
-                                        case "endorsed": $stat = 'For Assignment'; $color = "rose"; break;
+                                        case "pending": $stat = 'For Assignment'; $color = "rose"; break;
                                         case "assigned": $stat = 'Pending Acceptance'; $color = "red"; break;
                                         case "accepted": $stat = 'Accepted'; $color = "green"; break;
                                     }

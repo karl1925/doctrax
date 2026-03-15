@@ -23,7 +23,7 @@ return new class extends Migration
             $table->foreignId('assigned_to')->nullable()->constrained('users')->onDelete('set null');
             $table->enum('priority', ['normal', 'high', 'urgent'])->default('normal');
             $table->timestamp('target_date')->nullable();
-            $table->enum('status', ['pending', 'forwarded', 'endorsed', 'assigned', 'accepted', 'completed'])->default('pending');
+            $table->enum('status', ['pending', 'assigned', 'accepted', 'completed', 'cancelled'])->default('pending');
             $table->timestamps();
             $table->softDeletes();
         });

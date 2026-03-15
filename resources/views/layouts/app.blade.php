@@ -5,7 +5,7 @@ use Illuminate\Support\Str;
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}" class="h-full bg-slate-50">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>Doctrax | @yield('title', 'v1.1')</title>
     
@@ -41,7 +41,7 @@ use Illuminate\Support\Str;
     @auth
         <!-- Header -->
         <header class="fixed top-0 z-[60] w-full bg-white/80 backdrop-blur-md border-b border-slate-200">
-            <div class="px-4 h-16 flex items-center justify-between lg:px-6">
+            <div class="relative px-4 h-16 flex items-center justify-between lg:px-6">
                 <div class="flex items-center gap-4">
                     <!-- Mobile menu button -->
                     <button @click="mobileMenuOpen = !mobileMenuOpen" 
@@ -61,11 +61,7 @@ use Illuminate\Support\Str;
                 </div>
 
                 <div class="flex items-center gap-0">
-                    <!-- Notification Icon -->
-                    <button class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all">
-                        <i class="fas fa-bell text-lg"></i>
-                    </button>
-
+                    @include('partials.notifications')
                     <!-- Help Button -->
                     <a href="{{ route('manual') }}" target="_blank"
                     class="w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all ml-2">
@@ -115,7 +111,6 @@ use Illuminate\Support\Str;
                             </form>
                         </div>
                     </div>
-                    
                 </div>
             </div>
         </header>
@@ -159,22 +154,6 @@ use Illuminate\Support\Str;
                     <nav class="space-y-1">
                         @php
                             $extItems = [];
-
-                            if (auth()->user()->canForwardRequests()) {
-                                $extItems[] = [
-                                    'route' => 'externals.recording',
-                                    'icon'  => 'fa-inbox',
-                                    'label' => 'Incoming Requests',
-                                ];
-                            }
-
-                            if (auth()->user()->canEndorseRequests()) {
-                                $extItems[] = [
-                                    'route' => 'externals.endorsing',
-                                    'icon'  => 'fa-stamp',
-                                    'label' => 'For Endorsement',
-                                ];
-                            }
 
                             $extItems[] = [
                                 'route' => 'externals.mytasks',
@@ -284,17 +263,6 @@ use Illuminate\Support\Str;
                 </div>
             </div>
 
-            {{-- <div class="p-4 border-t border-slate-100 bg-slate-50/50">
-                <div class="flex items-center gap-3 p-2 bg-white border border-slate-200 rounded-xl">
-                    <div class="w-8 h-8 rounded-lg bg-green-500/10 flex items-center justify-center">
-                        <div class="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
-                    </div>
-                    <div class="flex flex-col">
-                        <span class="text-[10px] font-black text-slate-400 uppercase">System Status</span>
-                        <span class="text-[11px] font-bold text-slate-700">Operational</span>
-                    </div>
-                </div>
-            </div> --}}
         </aside>
 
         <main class="lg:ml-72 pt-16 min-h-screen transition-all duration-300">
@@ -455,6 +423,204 @@ use Illuminate\Support\Str;
 
             // Submit the form
             document.getElementById('forgotPasswordForm').submit();
+        }
+
+        const notifBtn = document.getElementById('notification-btn');
+        const notifDropdown = document.getElementById('notification-dropdown');
+        const notifCount = document.getElementById('notification-count');
+        const notifItems = document.getElementById('notification-items');
+
+        const notifMenuBtn = document.getElementById("notif-menu-btn");
+        const notifMenu = document.getElementById("notif-menu");
+
+        const allBtn = document.getElementById("notif-filter-all");
+        const unreadBtn = document.getElementById("notif-filter-unread");
+        const clearReadBtn = document.getElementById('clear-read-btn');
+        const markAllReadBtn = document.getElementById('mark-all-read');
+
+        let currentFilter = 'all';
+
+        function filterNotifications(type) {
+            const links = notifItems.querySelectorAll('a');
+            let visibleCount = 0;
+            links.forEach(a => {
+                const isRead = a.dataset.read === "1";
+                if (type === 'all') {
+                    a.classList.remove('hidden');
+                } else if (type === 'unread') {
+                    a.classList.toggle('hidden', isRead);
+                }
+                if (!a.classList.contains('hidden')) {
+                    visibleCount++;
+                }
+            });
+            let emptyMsg = notifItems.querySelector('.empty-msg');
+            if (!emptyMsg) {
+                emptyMsg = document.createElement('p');
+                emptyMsg.className = 'empty-msg p-4 text-center text-slate-400 text-xs';
+                emptyMsg.innerHTML = `
+                    <div class="items-center justify-center flex-col mb-2">
+                        <i class="fa-solid text-xl fa-bell-slash"></i>
+                        <div>No notifications</div>
+                    </div>
+                `;
+                notifItems.appendChild(emptyMsg);
+            }
+            emptyMsg.style.display = visibleCount === 0 ? 'block' : 'none';
+            if (type === 'all') {
+                allBtn.classList.add('bg-indigo-50', 'text-indigo-700');
+                allBtn.classList.remove('bg-slate-100', 'text-slate-500');
+                unreadBtn.classList.add('bg-slate-100', 'text-slate-500');
+                unreadBtn.classList.remove('bg-indigo-50', 'text-indigo-700');
+            } else {
+                unreadBtn.classList.add('bg-indigo-50', 'text-indigo-700');
+                unreadBtn.classList.remove('bg-slate-100', 'text-slate-500');
+                allBtn.classList.add('bg-slate-100', 'text-slate-500');
+                allBtn.classList.remove('bg-indigo-50', 'text-indigo-700');
+            }
+        }
+
+        document.addEventListener("click", () => {
+            notifMenu.classList.add("hidden");
+        });
+
+        notifBtn.addEventListener('click', () => {
+            notifDropdown.classList.toggle('hidden');
+        });
+
+        notifMenuBtn.addEventListener("click", (e) => {
+            e.stopPropagation();
+            notifMenu.classList.toggle("hidden");
+        });
+
+        allBtn.addEventListener('click', () => {
+            currentFilter = 'all';
+            filterNotifications(currentFilter);
+        });
+
+        unreadBtn.addEventListener('click', () => {
+            currentFilter = 'unread';
+            filterNotifications(currentFilter);
+        });
+
+        document.addEventListener('click', (e) => {
+            if (!notifBtn.contains(e.target) && !notifDropdown.contains(e.target)) {
+                notifDropdown.classList.add('hidden');
+            }
+        });
+
+        markAllReadBtn.addEventListener("click", async () => {
+            await fetch("/notifications/read-all", {
+                method: "POST",
+                headers: {
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                }
+            });
+            location.reload();
+        });
+
+        const loadedNotifications = new Set();
+
+        async function fetchNotifications() {
+            try {
+                const response = await fetch('{{ route('notifications.all') }}');
+                const data = await response.json();
+                const unreadCount = data.unread_count;
+                notifCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                notifCount.classList.toggle('hidden', unreadCount === 0);
+                const notifItems = document.getElementById('notification-items');
+                data.notifications.forEach(n => {
+                    // Skip if already exists
+                    if (loadedNotifications.has(n.id)) return;
+                    const a = document.createElement('a');
+                    a.id = 'notif-' + n.id;
+                    a.href = n.url || '#';
+                    a.dataset.read = n.is_new ? "0" : "1";
+                    a.className = "block px-4 py-2 transition flex justify-between items-start border-b border-slate-100";
+                    if (n.is_new) a.classList.add('font-bold', 'bg-indigo-50');
+                    a.innerHTML = `
+                        <div class="flex-1">
+                            <p class="text-xs text-slate-700 flex items-center gap-2">
+                                ${n.subject} 
+                                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold ${getBadgeColor(n.subject)}">
+                                    ${n.type}
+                                </span>
+                            </p>
+                            <p class="text-[10px] text-slate-400 truncate">${n.message}</p>
+                            <p class="text-[10px] text-slate-400 truncate text-italic">By: ${n.created_by}</p>
+                            <p class="text-[9px] text-slate-300">${n.time}</p>
+                        </div>
+                    `;
+                    if (currentFilter === 'all' || (currentFilter === 'unread' && n.is_new)) {
+                        notifItems.prepend(a);
+                    }
+                    loadedNotifications.add(n.id);
+                });
+                filterNotifications(currentFilter);
+
+            } catch (error) {
+                console.error('Error fetching notifications:', error);
+            }
+        }
+
+        clearReadBtn.addEventListener('click', async () => {
+            if (!confirm('Are you sure you want to delete all read notifications?')) return;
+            try {
+                const res = await fetch('/notifications/clear-read', {
+                    method: 'DELETE',
+                    headers: {
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                        'Accept': 'application/json',
+                    },
+                });
+                if (res.ok) {
+                    const notifItems = document.getElementById('notification-items');
+                    notifItems.querySelectorAll('a[data-read="1"]').forEach(a => a.remove());
+                    const unreadCount = notifItems.querySelectorAll('a[data-read="0"]').length;
+                    const notifCount = document.getElementById('notification-count');
+                    notifCount.textContent = unreadCount > 99 ? '99+' : unreadCount;
+                    notifCount.classList.toggle('hidden', unreadCount === 0);
+                    if (!notifItems.querySelector('a')) {
+                        let emptyMsg = notifItems.querySelector('.empty-msg');
+                        if (!emptyMsg) {
+                            emptyMsg = document.createElement('p');
+                            emptyMsg.className = 'empty-msg p-4 text-center text-slate-400 text-xs flex flex-col items-center justify-center gap-2';
+                            emptyMsg.innerHTML = `
+                                <div class="items-center justify-center flex-col mb-2">
+                                    <i class="fa-solid text-xl fa-bell-slash"></i>
+                                    <div>No notifications</div>
+                                </div>
+                            `;
+                            notifItems.appendChild(emptyMsg);
+                        }
+                        emptyMsg.style.display = 'flex'; // ensure flex for vertical alignment
+                    }
+                } else {
+                    console.error('Failed to clear read notifications');
+                }
+            } catch (err) {
+                console.error('Error clearing read notifications:', err);
+            }
+        });
+
+        // Polling
+        setInterval(fetchNotifications, 10000);
+        fetchNotifications(); // initial load
+
+        // Helper for badge colors
+        function getBadgeColor(subject) {
+            switch (subject) {
+                case 'New': return 'bg-blue-100 text-blue-600';
+                case 'Completed': return 'bg-green-100 text-green-600';
+                case 'For Assignment': return 'bg-orange-100 text-orange-600';
+                case 'Pending Acceptance': return 'bg-red-100 text-red-600';
+                case 'Task Accepted': return 'bg-green-200 text-green-800';
+                case 'New Assignment': return 'bg-indigo-100 text-indigo-600';
+                case 'Attachment Added': return 'bg-purple-100 text-purple-600';
+                case 'Follow-Up': return 'bg-yellow-100 text-yellow-600';
+                case 'Update': return 'bg-teal-100 text-teal-600';
+                default: return 'bg-slate-100 text-slate-700';
+            }
         }
     </script>
     @stack('scripts')

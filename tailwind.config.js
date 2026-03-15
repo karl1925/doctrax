@@ -19,3 +19,13 @@ export default {
 
     plugins: [forms],
 };
+
+module.exports = {
+  content: [
+    './src/**/*.{html,js,jsx,ts,tsx,vue}', // make sure all mobile HTML/JS is included
+  ],
+  theme: {
+    extend: {},
+  },
+  plugins: [],
+}

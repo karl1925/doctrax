@@ -23,8 +23,6 @@
                     // Dynamic styling map based on status
                     $colorMap = [
                         'Received'  => ['bg' => 'bg-blue-500',   'light' => 'bg-blue-50',   'text' => 'text-blue-700',   'border' => 'border-blue-200',   'icon' => 'fa-arrow-down-long'],
-                        'Forwarded' => ['bg' => 'bg-indigo-500', 'light' => 'bg-indigo-50', 'text' => 'text-indigo-700', 'border' => 'border-indigo-200', 'icon' => 'fa-share-nodes'],
-                        'Endorsed'  => ['bg' => 'bg-rose-500',   'light' => 'bg-rose-50',   'text' => 'text-rose-700',   'border' => 'border-rose-200',   'icon' => 'fa-award'],
                         'Assigned'  => ['bg' => 'bg-amber-500',  'light' => 'bg-amber-50',  'text' => 'text-amber-700',  'border' => 'border-amber-200',  'icon' => 'fa-user-pen'],
                         'Accepted'  => ['bg' => 'bg-green-500',  'light' => 'bg-green-50',  'text' => 'text-green-700',  'border' => 'border-green-200',  'icon' => 'fa-check-double'],
                         'Task accepted'  => ['bg' => 'bg-green-500',  'light' => 'bg-green-50',  'text' => 'text-green-700',  'border' => 'border-green-200',  'icon' => 'fa-check-double'],

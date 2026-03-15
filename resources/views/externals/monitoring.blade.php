@@ -42,9 +42,7 @@
                                 $stat = "";
                                 $color = "";
                                 switch($external->status) {
-                                    case "pending": $stat = 'For Recording'; $color = "gray"; break;
-                                    case "forwarded": $stat = 'For Division Assignment'; $color = "slate"; break;
-                                    case "endorsed": $stat = 'For Assignment'; $color = "rose"; break;
+                                    case "pending": $stat = 'For Assignment'; $color = "rose"; break;
                                     case "assigned": $stat = 'Pending Acceptance'; $color = "red"; break;
                                     case "accepted": $stat = 'Accepted'; $color = "green"; break;
                                 }
@@ -65,16 +63,24 @@
                             </p>
                         </div>
                     </div>
-                    <div class="text-right">
+                    <div class="text-right gap-2 flex flex-col items-end">
                         @if(count($external->histories))
                             <div class="pb-3">
                                 <span class="font-bold text-xs">{{ $external->history->action ?? 'N/A' }}<br><span class="font-normal">by {{ $external->history->user->name ?? 'N/A' }}<span>
                                 <span class="italic font-normal">{{ $external->histories->last()?->created_at?->diffForHumans() ?? '' }}</span></span><br>
                             </div>
                         @endif
-                        <a href="{{ route('externals.monitoring.show', $external->id) }}" class="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">
-                            Review
-                        </a>
+                        <div class="flex items-center gap-2">
+                            <button 
+                                type="button" 
+                                class="px-6 py-3 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-widest rounded-xl hover:bg-indigo-700 transition"
+                                onclick="openFollowUpModal({{ $external->id }})">
+                                Follow-up
+                            </button>
+                            <a href="{{ route('externals.monitoring.show', $external->id) }}" class="px-6 py-3 bg-slate-900 text-white text-[10px] font-black uppercase tracking-widest rounded-xl">
+                                Review
+                            </a>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -105,4 +111,39 @@
         </div>
     </div>
 </div>
+
+<!-- Follow-up Modal -->
+<div id="followup-modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-bold mb-4">Add Follow-up Remarks</h3>
+        <form method="POST" id="followup-form">
+            @csrf
+            <textarea name="remarks" rows="4" placeholder="Enter your remarks..."
+                      class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-indigo-200 focus:border-indigo-400 resize-none mb-4"></textarea>
+            <div class="flex justify-end gap-3">
+                <button type="button" 
+                        class="px-4 py-2 bg-gray-200 text-slate-700 rounded-xl font-bold hover:bg-gray-300 transition"
+                        onclick="closeFollowUpModal({{ $external->id }})">Cancel</button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
+                    Follow-up
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@push('scripts')
+<script>
+    function openFollowUpModal(id) {
+        document.getElementById(`followup-form`).action = `/externals/${id}/followup`;
+        document.getElementById(`followup-modal`).classList.remove('hidden');
+        document.getElementById(`followup-modal`).classList.add('flex');
+    }
+
+    function closeFollowUpModal(id) {
+        document.getElementById(`followup-modal`).classList.add('hidden');
+        document.getElementById(`followup-modal`).classList.remove('flex');
+    }
+</script>
+@endpush
 @endsection

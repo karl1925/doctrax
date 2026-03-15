@@ -60,6 +60,7 @@
                     </div>
                 </div>
 
+                @if(config('modules.internal_routing'))
                 {{-- Internal Notifications --}}
                 <div>
                     <h3 class="text-lg font-semibold text-gray-700 mb-4 border-b pb-2">
@@ -100,6 +101,7 @@
                         @endforeach
                     </div>
                 </div>
+                @endif
 
                 <div class="pt-6 border-t">
                     <button type="submit"
