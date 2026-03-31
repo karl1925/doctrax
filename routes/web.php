@@ -1,8 +1,12 @@
 <?php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\PasswordController;
 use App\Http\Controllers\{NotificationController, GoogleOAuthController, DashboardController, DocumentController, ExternalController, SettingController, ProfileController};
+use App\Models\{User, External};
+
+Route::get('/api/agencies', [SettingController::class, 'searchAgencies'])->name('api.agencies');
 
 Route::get('/', function () {
     if (auth()->check()) {
@@ -14,63 +18,15 @@ Route::get('/', function () {
 Route::get('/auth/google/redirect', [GoogleOAuthController::class, 'redirectToGoogle'])->name('google.redirect');
 Route::get('/auth/google/callback', [GoogleOAuthController::class, 'handleGoogleCallback'])->name('google.callback');
 
-// Authenticated Routes
+Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readall');
+Route::delete('/notifications/clear-read', [NotificationController::class, 'clearRead'])->name('notifications.clear-read');
+Route::delete('/notifications/clear-all', [NotificationController::class, 'clearAll'])->name('notifications.clear-all');
+Route::get('/notifications/fetch', [NotificationController::class, 'getNotifications'])->name('notifications.fetch');
+Route::post('/notifications/mark-read', [NotificationController::class, 'markAsRead'])->name('notifications.markRead');
+Route::delete('/notifications/{id}', [NotificationController::class, 'destroy'])->name('notifications.destroy');
+
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
-    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])->name('notifications.readall');
-    Route::delete('/notifications/clear-read', function () {
-        auth()->user()->notifications()->whereNotNull('read_at')->delete();
-        return response()->json(['ok' => true]);
-    })->name('notifications.clearRead');
-
-    Route::get('/notifications/all', function() {
-        $user = auth()->user();
-        $notifications = auth()->user()->notifications
-            ->sortByDesc('created_at')
-            ->take(10)
-            ->map(function($n) {
-                return [
-                    'id' => $n->id,
-                    'type' => $n->data['subject'],
-                    'subject' => \App\Models\External::find($n->data['request_id'])->subject,
-                    'message' => $n->data['message'] ?? '',
-                    'created_by' => \App\Models\User::find($n->data['created_by'])?->name ?? '',
-                    'url' => $n->data['url'] ?? '#',
-                    'time' => $n->created_at->diffForHumans(),
-                    'is_new' => is_null($n->read_at),
-                ];
-            })
-            ->values() // resets keys 0,1,2...
-            ->all();   // converts Collection to plain array
-
-        return response()->json([
-            'unread_count' => auth()->user()->unreadNotifications->count(),
-            'notifications' => $notifications,
-        ]);
-    })->name('notifications.all');
-
-    Route::get('/notifications/unread', function() {
-        $notifications = auth()->user()->unreadNotifications->take(10)->map(function($n) {
-            return [
-                'subject' => $n->data['subject'] ?? 'No subject',
-                'message' => $n->data['message'] ?? '',
-                'url' => $n->data['url'] ?? '#',
-                'time' => $n->created_at->diffForHumans(),
-            ];
-        });
-
-        return response()->json([
-            'unread_count' => auth()->user()->unreadNotifications->count(),
-            'notifications' => $notifications,
-        ]);
-
-    })->name('notifications.unread');
-
-    Route::delete('/notifications/clear-all', function () {
-        auth()->user()->notifications()->delete(); // deletes all notifications
-        return redirect()->back()->with('success', 'All notifications cleared.');
-    })->name('notifications.clearAll');
-
+    
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('/manual', [DashboardController::class, 'manual'])->name('manual');
 
@@ -79,7 +35,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
     Route::delete('/profile/avatar', [ProfileController::class, 'destroyAvatar'])->name('profile.avatar.destroy');
     Route::get('/password/change', [PasswordController::class, 'edit'])->name('password.change');
-    Route::post('/password/change', [PasswordController::class, 'update'])->name('password.update');
+    Route::put('/password/change', [PasswordController::class, 'update'])->name('password.update');
 
     Route::prefix('documents')->group(function () {
         Route::get('/forsigning', [DocumentController::class, 'forSigning'])->name('documents.forsigning');
@@ -130,6 +86,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/updateLeadership', [SettingController::class, 'updateLeadership'])->name('settings.updateLeadership');
         Route::post('/addUser/{role}', [SettingController::class, 'addUser'])->name('settings.addUser');
         Route::delete('/removeUser/{role}/{user}', [SettingController::class, 'removeUser'])->name('settings.removeUser');
+        Route::get('/partners', [SettingController::class, 'partners'])->name('settings.partners');
+        Route::post('/partners', [SettingController::class, 'addPartner'])->name('settings.partners.store');
+        Route::delete('/partners/{partner}', [SettingController::class, 'removePartner'])->name('settings.partners.destroy');
     });
 });
 

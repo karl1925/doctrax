@@ -6,7 +6,7 @@
                 <i class="fa-solid fa-clock-rotate-left"></i>
             </div>
             <div>
-                <h3 class="text-sm font-black text-slate-900 uppercase tracking-[0.15em]">Request History</h3>
+                <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.15em]">Request History</h3>
                 <p class="text-[11px] text-slate-500 font-medium">Activity log for this transaction</p>
             </div>
         </div>
@@ -28,9 +28,13 @@
                         'Task accepted'  => ['bg' => 'bg-green-500',  'light' => 'bg-green-50',  'text' => 'text-green-700',  'border' => 'border-green-200',  'icon' => 'fa-check-double'],
                         'Completed' => ['bg' => 'bg-teal-500',   'light' => 'bg-teal-50',   'text' => 'text-teal-700',   'border' => 'border-teal-200',   'icon' => 'fa-circle-check'],
                         'Updated'   => ['bg' => 'bg-purple-500', 'light' => 'bg-purple-50', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'icon' => 'fa-pen-to-square'],
+                        'update'   => ['bg' => 'bg-purple-500', 'light' => 'bg-purple-50', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'icon' => 'fa-pen-to-square'],
+                        'Update Added'   => ['bg' => 'bg-purple-500', 'light' => 'bg-purple-50', 'text' => 'text-purple-700', 'border' => 'border-purple-200', 'icon' => 'fa-pen-to-square'],
                         'Attached'  => ['bg' => 'bg-pink-500',   'light' => 'bg-pink-50',   'text' => 'text-pink-700',   'border' => 'border-pink-200',   'icon' => 'fa-paperclip'],
                         'Archived'  => ['bg' => 'bg-red-500',   'light' => 'bg-red-50',   'text' => 'text-red-700',   'border' => 'border-red-200',   'icon' => 'fa-box-archive'],
                         'Restored'  => ['bg' => 'bg-sky-500',   'light' => 'bg-sky-50',   'text' => 'text-sky-700',   'border' => 'border-sky-200',   'icon' => 'fa-box-archive'],
+                        'Follow-Up'  => ['bg' => 'bg-orange-500',   'light' => 'bg-orange-50',   'text' => 'text-orange-700',   'border' => 'border-orange-200',   'icon' => 'fa-bell'],
+                        'Sent Follow-Up'  => ['bg' => 'bg-orange-500',   'light' => 'bg-orange-50',   'text' => 'text-orange-700',   'border' => 'border-orange-200',   'icon' => 'fa-bell'],
                     ];
 
                     $historyAction = $history->action ?? '';

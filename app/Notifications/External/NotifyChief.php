@@ -26,7 +26,7 @@ class NotifyChief extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return $this->sendMail ? ['mail', 'database'] : ['database'];
+        return $this->sendMail ? ['database', 'mail'] : ['database'];
     }
 
     public function toMail($notifiable): MailMessage
@@ -46,6 +46,7 @@ class NotifyChief extends Notification implements ShouldQueue
         return [
             'request_id' => $this->external->id,
             'subject' => 'For Assignment',
+            'created_at' => now(),
             'created_by' => $this->creator_id,
             'message' => 'A new request received for personnel assignment.',
             'url' => $this->url,

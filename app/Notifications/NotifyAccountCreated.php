@@ -7,7 +7,7 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
-class AccountCreatedNotification extends Notification implements ShouldQueue
+class NotifyAccountCreated extends Notification implements ShouldQueue
 {
     use Queueable;
 
@@ -28,11 +28,11 @@ class AccountCreatedNotification extends Notification implements ShouldQueue
         return (new MailMessage)
             ->subject('DocTrax Account Created')
             ->greeting("Hello {$notifiable->name},")
-            ->line('Your DocTrax account has been created.')
-            ->line('Please use the following credentials to log in:')
+            ->line('Your DocTrax account has been created. Please use the following credentials to log in:')
             ->line("Email: {$notifiable->email}")
             ->line("Password: {$this->password}") 
             ->line('Alternatively, you can login using your GovMail account.')
+            ->action('Start your DocTrax Journey', 'https://doctrax.dictr2.cloud')
             ->line('Thank you for using DocTrax!');
     }
 }

@@ -14,8 +14,9 @@ return new class extends Migration
         Schema::create('externals', function (Blueprint $table) {
             $table->id();
             $table->string('subject');
-            $table->string('agency');
-            $table->string('contact');
+            $table->foreignId('partner_id')->constrained('partners')->onDelete('cascade');
+            $table->string('email')->nullable();
+            $table->string('contactNo')->nullable();
             $table->text('description')->nullable();
             $table->text('reference')->nullable();
             $table->foreignId('creator_id')->constrained('users')->onDelete('cascade');

@@ -95,6 +95,13 @@ class User extends Authenticatable
             ->exists();
     }
 
+    public function isARD(): bool
+    {
+        return Setting::where('setting', 'ard')
+            ->where('user_id', auth()->id())
+            ->exists();
+    }
+
     public function isChiefTOD(): bool
     {
         return Setting::where('setting', 'todchief')

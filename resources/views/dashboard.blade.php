@@ -4,8 +4,6 @@
 
 @section('content')
 <div class="max-w-[1400px] mx-auto px-4 sm:px-8 py-10 antialiased">
-
-     <!-- Top Bar: Contextual Navigation -->
     <header class="flex flex-col md:flex-row md:items-center justify-between mb-4 gap-6">
         <div>
             <nav class="flex items-center space-x-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">
@@ -24,40 +22,63 @@
         </div>
     </header>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-        @if(auth()->user()->isDirector() || auth()->user()->isChiefTOD())
+        @if(auth()->user()->isDirector() || auth()->user()->isARD() || auth()->user()->isChiefTOD())
             <div class="p-8 bg-white border border-gray-100 rounded-3xl transition-all hover:border-amber-200">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Endorsed to TOD</p>
                 <h3 class="text-4xl font-bold text-gray-900 tracking-tighter">{{ $exstats['endorsedTOD'] ?? 0 }}</h3>
                 <div class="mt-4 flex items-center gap-1.5">
                     @if(auth()->user()->isChiefTOD())
-                        <a href="{{ route('externals.mytasks') }}" class="text-[10px] font-bold text-amber-500 uppercase">For your action</a>
+                        @if($exstats['endorsedTOD'] === 0)
+                            <span class="text-[10px] font-bold text-amber-500 uppercase">All Clear</span>
+                        @else
+                            <a href="{{ route('externals.mytasks') }}" class="text-[10px] font-bold text-amber-500 uppercase">For your action</a>
+                        @endif        
                     @else
-                        <span class="text-[10px] font-bold text-amber-500 uppercase">For personnel assignment</span>
+                        <span class="text-[10px] font-bold text-amber-500 uppercase">Pending</span>
                     @endif
                 </div>
             </div>
         @endif
-
-        @if(auth()->user()->isDirector() || auth()->user()->isChiefAFD())
+        @if(auth()->user()->isDirector() || auth()->user()->isARD() || auth()->user()->isChiefAFD())
             <div class="p-8 bg-white border border-gray-100 rounded-3xl transition-all hover:border-amber-200">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Endorsed to AFD</p>
                 <h3 class="text-4xl font-bold text-gray-900 tracking-tighter">{{ $exstats['endorsedAFD'] ?? 0 }}</h3>
                 <div class="mt-4 flex items-center gap-1.5">
                     @if(auth()->user()->isChiefAFD())
-                        <a href="{{ route('externals.mytasks') }}" class="text-[10px] font-bold text-amber-500 uppercase">For your action</a>
+                        @if($exstats['endorsedAFD'] === 0)
+                            <span class="text-[10px] font-bold text-amber-500 uppercase">All Clear</span>
+                        @else
+                            <a href="{{ route('externals.mytasks') }}" class="text-[10px] font-bold text-amber-500 uppercase">For your action</a>
+                        @endif
                     @else
-                        <span class="text-[10px] font-bold text-amber-500 uppercase">For personnel assignment</span>
+                        <span class="text-[10px] font-bold text-amber-500 uppercase">Pending</span>
                     @endif
                 </div>
             </div>
         @endif
-
-        @if(auth()->user()->canMonitorRequests())
+        @if(auth()->user()->isDirector() || auth()->user()->isARD() || auth()->user()->canMonitorRequests())
             <div class="p-8 bg-white border border-gray-100 rounded-3xl transition-all hover:border-green-200">
                 <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Active Requests</p>
                 <h3 class="text-4xl font-bold text-gray-900 tracking-tighter">{{ count($activeRequests) }}</h3>
                 <div class="mt-4 flex items-center gap-1.5">
-                    <a href="{{ route('externals.monitoring') }}" class="text-[10px] font-bold text-green-500 uppercase">Being Handled</a>
+                    @if(count($activeRequests) === 0)
+                        <span class="text-[10px] font-bold text-amber-500 uppercase">All Clear</span>
+                    @else
+                        <a href="{{ route('externals.monitoring') }}" class="text-[10px] font-bold text-green-500 uppercase">Being Handled</a>
+                    @endif
+                </div>
+            </div>
+        @endif
+        @if(!auth()->user()->isDirector())
+            <div class="p-8 bg-white border border-gray-100 rounded-3xl transition-all hover:border-orange-200">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-1">Assigned to you</p>
+                <h3 class="text-4xl font-bold text-gray-900 tracking-tighter">{{ $authTasks }}</h3>
+                <div class="mt-4 flex items-center gap-1.5">
+                    @if($authTasks === 0)
+                        <span class="text-[10px] font-bold text-orange-500 uppercase">All Clear</span>
+                    @else
+                        <a href="{{ route('externals.mytasks') }}" class="text-[10px] font-bold text-orange-500 uppercase">View All</a>
+                    @endif
                 </div>
             </div>
         @endif
@@ -65,12 +86,11 @@
 
     <!-- Main Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
-        <!-- Left Side (Active Requests Feed): Spans 8 or 9 columns for readability -->
         <div class="col-span-12 space-y-6">
             <div class="flex items-center justify-between px-2">
                 <div>
                     <h2 class="text-xs font-black text-gray-900 uppercase tracking-[0.3em]">Active Requests</h2>
-                    <span class="text-[10px] font-bold text-red-500 uppercase">Requests being handled based on your monitoring scope.</span>
+                    <span class="text-[10px] font-bold text-red-500 uppercase">Requests being handled.</span>
                 </div>
                 <a href="{{ route('externals.monitoring') }}" class="text-[10px] font-bold text-gray-400 hover:text-gray-900 uppercase transition-colors">
                     View All Tasks
@@ -78,62 +98,29 @@
             </div>
 
             <div class="space-y-3">
-                @forelse($activeRequests as $external)
-                    <div class="group bg-white border border-gray-100 p-5 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all hover:shadow-xl hover:shadow-gray-200/40 hover:-translate-y-0.5">
-                        <div class="flex items-center gap-5">
-                            <div class="min-w-0">
-                                <div class="text-sm font-black text-slate-800 tracking-tight group-hover:text-indigo-600 transition-colors"> 
-                                    @if($external->priority === 'urgent')
-                                        <span class="text-[9px] font-black text-rose-600 uppercase tracking-tighter bg-rose-50 px-0 py-0.5 rounded">Urgent</span>
-                                    @elseif($external->priority === 'high')
-                                        <span class="text-[9px] font-black text-amber-600 uppercase tracking-tighter bg-amber-50 px-0 py-0.5 rounded">High Priority</span>
-                                    @endif
-                                    {{ $external->subject }}
-                                </div>
-                                <div class="flex items-center gap-2 mt-1">
-                                    <span class="text-[10px] font-bold text-gray-700 uppercase">{{ $external->reference }}</span>
-                                    <span class="text-[10px] text-gray-400">Updated {{ $external->updated_at->diffForHumans() }}</span>
-                                </div>
+                
+                    @forelse($activeRequests as $external)
+                        <div class="grid grid-cols-1 gap-0 pl-0">
+                            @include('components.external-card', ['external' => $external])
+                        </div>
+                    @empty
+                        <div class="bg-gray-50/50 border-2 border-dashed border-gray-100 rounded-3xl p-16 text-center">
+                            <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm mb-4">
+                                <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                                </svg>
                             </div>
+                            <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
+                                No active requests need your attention.
+                            </p>
                         </div>
-                        <div class="flex items-center justify-between sm:justify-end gap-6">
-                            <div class="text-right">
-                                <p class="text-[9px] font-bold text-gray-400 uppercase leading-none mb-1">Due</p>
-
-                                <p class="text-[10px] font-black uppercase
-                                    {{ $external->target_date && $external->target_date->isPast()
-                                        ? 'text-red-600'
-                                        : 'text-gray-900' }}">
-                                    
-                                    {{ $external->target_date
-                                        ? $external->target_date->diffForHumans()
-                                        : 'No deadline' }}
-                                </p>
-                            </div>
-                            <a href="{{ route('externals.monitoring.show', $external->id) }}" class="inline-flex items-center px-6 py-2.5 bg-indigo-600 text-white text-[10px] font-black uppercase tracking-[0.15em] rounded-xl hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-100 transition-all">
-                                Review <i class="fas fa-chevron-right ml-2 text-[8px]"></i>
-                            </a>
-                        </div>
-                    </div>
-                @empty
-                    <div class="bg-gray-50/50 border-2 border-dashed border-gray-100 rounded-3xl p-16 text-center">
-                        <div class="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-sm mb-4">
-                            <svg class="w-8 h-8 text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                            </svg>
-                        </div>
-                        <p class="text-[11px] font-bold text-gray-400 uppercase tracking-widest max-w-[200px] mx-auto leading-relaxed">
-                            No active requests need your attention.
-                        </p>
-                    </div>
-                @endforelse
+                    @endforelse
+                
             </div>
         </div>
     </div>
     
     @if(config('modules.internal_routing'))
-
-        <!-- Top Bar: Contextual Navigation -->
         <header class="flex flex-col md:flex-row md:items-center justify-between mt-12 mb-4 gap-6">
             <div>
                 <nav class="flex items-center space-x-2 text-[11px] font-bold uppercase tracking-[0.2em] text-gray-400 mb-2">
@@ -308,4 +295,41 @@
         </div>
     @endif
 </div>
+@if(count($activeRequests))
+<!-- Follow-up Modal -->
+<div id="followup-modal" class="fixed inset-0 hidden items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg font-bold mb-4">Add Follow-up Remarks</h3>
+        <form method="POST" id="followup-form">
+            @csrf
+            <textarea name="remarks" rows="4" placeholder="Enter your remarks..."
+                    class="w-full px-4 py-3 border border-slate-200 rounded-xl focus:ring-indigo-200 focus:border-indigo-400 resize-none mb-4"></textarea>
+            <div class="flex justify-end gap-3">
+                <button type="button" 
+                        class="px-4 py-2 bg-gray-200 text-slate-700 rounded-xl font-bold hover:bg-gray-300 transition"
+                        onclick="closeFollowUpModal()">Cancel</button>
+                <button type="submit" 
+                        class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700 transition">
+                    Follow-up
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+@endif
 @endsection
+
+@push('scripts')
+<script>
+    function openFollowUpModal(id) {
+        document.getElementById(`followup-form`).action = `/externals/${id}/followup`;
+        document.getElementById(`followup-modal`).classList.remove('hidden');
+        document.getElementById(`followup-modal`).classList.add('flex');
+    }
+
+    function closeFollowUpModal() {
+        document.getElementById(`followup-modal`).classList.add('hidden');
+        document.getElementById(`followup-modal`).classList.remove('flex');
+    }
+</script>
+@endpush

@@ -6,8 +6,8 @@
 <i class="fa-solid fa-paperclip"></i>
 </div>
 <div>
-<h3 class="text-sm font-black text-slate-900 uppercase tracking-[0.15em]">Attachments</h3>
-<p class="text-[11px] text-slate-500 font-medium">Supporting documents for this request</p>
+<h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.15em]">Attachments</h3>
+<p class="text-[11px] text-slate-500 dark:text-whitefont-medium">Supporting documents for this request</p>
 </div>
 </div>
 <span class="text-[10px] font-black text-slate-500 bg-slate-100 border border-slate-200 px-3 py-1 rounded-full uppercase tracking-wider">

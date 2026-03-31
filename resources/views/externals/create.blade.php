@@ -2,56 +2,93 @@
 
 @section('title', 'Initiate Request Accommodation')
 
+@push('styles')
+<style>
+/* Hide scrollbar for suggestions */
+ul::-webkit-scrollbar { display: none; }
+ul { -ms-overflow-style: none; scrollbar-width: none; }
+</style>
+@endpush
 @section('content')
-<div class="max-w-3xl mx-auto py-8 space-y-6">
+<div class="max-w-3xl mx-auto py-8 space-y-6 text-slate-500 dark:text-slate-400">
 
     <!-- Header -->
     <header class="mb-10 text-center">
-        <div class="inline-flex items-center px-4 py-1.5 rounded-full bg-indigo-50 text-indigo-700 text-[10px] font-black uppercase tracking-[0.2em] mb-4">
-            Step <span id="current-step-label" class="mx-1">1</span> of 2
-        </div>
-        <h1 id="step-title" class="text-4xl md:text-5xl font-black text-slate-900 tracking-tight transition-all duration-300">
-            Document Details
+        <h1 id="step-title" class="text-4xl md:text-5xl font-black text-slate-900 dark:text-white tracking-tight transition-all duration-300">
+            Request Details
         </h1>
         <p id="step-desc" class="mt-3 text-slate-500 font-medium">Start by providing the basic information for this request.</p>
     </header>
 
-    <form id="request-form" action="{{ route('externals.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 bg-white p-6 rounded-xl shadow-sm border border-slate-100">
+    <form id="request-form" action="{{ route('externals.store') }}" method="POST" enctype="multipart/form-data" class="space-y-6 p-6 rounded-xl shadow-sm border border-slate-100">
         @csrf
 
         <!-- Subject -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Subject <span class="text-rose-500">*</span></label>
+            <label class="text-[10px] font-bold uppercase tracking-widest">Subject <span class="text-rose-500">*</span></label>
             <input type="text" name="subject" value="{{ old('subject') }}" placeholder="e.g. WiFi Connectivity Request"
-                class="text-sm border-b-2 border-slate-200 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded">
+                class="text-sm font-bold border-b-2 border-slate-200 text-slate-900 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded" required>
         </div>
 
-        <!-- Agency -->
+        <!-- Partner Select -->
+        <div class="flex flex-col space-y-1 w-full">
+            <label class="text-[10px] font-bold uppercase tracking-widest">
+                Requesting Agency <span class="text-rose-500">*</span>
+            </label>
+            <div class="flex w-full gap-2">
+                <select id="partner"
+                    name="partner"
+                    class="text-sm border-b-2 border-slate-200 focus:border-indigo-500 focus:outline-none px-3 py-2 rounded bg-white text-slate-900 cursor-pointer"
+                >
+                    <option value="">Select Partner Agency...</option>
+                    @foreach($partners as $partner)
+                        <option 
+                            value="{{ $partner->id }}"
+                            data-code="{{ $partner->code ?? '' }}"
+                            data-email="{{ $partner->email ?? '' }}"
+                            data-contact="{{ $partner->contactNo ?? '' }}"
+                            {{ old('partner_id') == $partner->id ? 'selected' : '' }}
+                        >
+                            {{ $partner->code . ' - ' . $partner->name }}
+                        </option>
+                    @endforeach
+                </select>
+
+                <!-- Add Partner Button -->
+                <button 
+                    type="button" 
+                    class="w-10 flex justify-center items-center px-3 py-2 bg-indigo-600 text-white text-[10px] font-black uppercase rounded-xl hover:bg-indigo-700 transition"
+                    onclick="openAddPartnerModal()"
+                >+</button>
+            </div>
+        </div>
+
+        <!-- Email -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Requesting Agency <span class="text-rose-500">*</span></label>
-            <input type="text" name="agency" value="{{ old('agency') }}" placeholder="e.g. LGU Solano"
-                class="text-sm border-b-2 border-slate-200 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded">
+            <label class="text-[10px] font-bold uppercase tracking-widest">Email</label>
+            <input id="email" type="email" name="email" value="{{ old('email') }}" placeholder="someone@somewhere.com"
+                class="text-sm font-bold border-b-2 border-slate-200 focus:border-indigo-500 text-slate-900 focus:outline-none px-1 py-2 rounded">
         </div>
 
         <!-- Contact -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Point of Contact / Email / Number <span class="text-rose-500">*</span></label>
-            <input type="text" name="contact" value="{{ old('contact') }}" placeholder="John Doe / 0917xxx / email@domain.com"
-                class="text-sm border-b-2 border-slate-200 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded">
+            <label class="text-[10px] font-bold uppercase tracking-widest">Contact Number</label>
+            <input id="contactNo" type="text" name="contactNo" value="{{ old('contactNo') }}" placeholder="Contact Number..."
+                class="text-sm font-bold border-b-2 border-slate-200 focus:border-indigo-500 text-slate-900 focus:outline-none px-1 py-2 rounded">
         </div>
 
         <!-- Description -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Executive Summary</label>
+            <label class="text-[10px] font-bold uppercase tracking-widest">Executive Summary</label>
             <textarea name="description" rows="3" placeholder="Brief explanation..."
-                class="text-sm px-3 py-2 rounded-md bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-300 focus:ring-1 focus:ring-indigo-100"></textarea>
+                class="text-sm px-3 py-2 text-slate-900 font-bold rounded-md bg-slate-50 border border-slate-200 focus:bg-white focus:border-indigo-300 focus:ring-1 focus:ring-indigo-100"></textarea>
         </div>
 
         <!-- Reference -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Reference #</label>
-            <input type="text" name="reference" value="{{ old('reference') }}" placeholder="Request.Wifi.2026.001"
-                class="text-sm border-b-2 border-slate-200 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded">
+            <label class="text-[10px] font-bold uppercase tracking-widest">Reference #</label>
+            <input type="text" id="reference" name="reference" value="{{ old('reference') }}" placeholder="e.g. Request.Wifi.2026.001"
+                class="text-sm border-b-2 font-bold border-slate-200 text-slate-900 focus:border-indigo-500 focus:outline-none px-1 py-2 rounded">
         </div>
 
         <!-- Priority & Target Date -->
@@ -73,8 +110,8 @@
             </div>
             <div class="flex flex-col space-y-1">
                 <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Deadline</label>
-                <input type="datetime-local" name="target_date" min="{{ now()->format('Y-m-d\TH:i') }}" 
-                    class="text-sm px-3 py-2 rounded border border-slate-200 focus:border-indigo-500 focus:outline-none">
+                <input type="date" name="target_date" min="{{ now()->format('Y-m-d') }}" 
+                    class="text-sm font-bold text-slate-900 px-3 py-2 rounded border border-slate-200 focus:border-indigo-500 focus:outline-none">
             </div>
         </div>
 
@@ -82,7 +119,6 @@
         <div id="step-2" class="step-container animate-in fade-in zoom-in-95 duration-500">
             <div class="bg-white p-6 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-xl shadow-slate-200/50">
                 <div id="drop-zone" class="relative group border-4 border-dashed border-slate-100 rounded-[2.5rem] p-16 transition-all hover:border-indigo-200 hover:bg-indigo-50/30 text-center cursor-pointer overflow-hidden">
-                    <!-- MANDATORY: Input must have the name="attachments[]" attribute -->
                     <input type="file" id="file-input" name="attachments[]" multiple class="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10">
                     <div class="space-y-6 pointer-events-none relative z-0">
                         <div class="w-20 h-20 bg-indigo-600 rounded-[2rem] flex items-center justify-center mx-auto text-white shadow-xl shadow-indigo-200 group-hover:scale-110 group-hover:-rotate-3 transition-transform duration-500">
@@ -108,8 +144,8 @@
 
         <!-- Division -->
         <div class="flex flex-col space-y-1">
-            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Division</label>
-            <select name="division" class="text-sm px-3 py-2 rounded border border-slate-200 focus:border-indigo-500 focus:outline-none" required>
+            <label class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Division <span class="text-rose-500">*</span></label>
+            <select name="division" class="text-sm text-slate-900 font-bold px-3 py-2 rounded border border-slate-200 focus:border-indigo-500 focus:outline-none" required>
                 <option value="">Select Division</option>
                 <option value="AFD" {{ old('division') == 'AFD' ? 'selected' : '' }}>Administration and Finance Division</option>
                 <option value="TOD" {{ old('division') == 'TOD' ? 'selected' : '' }}>Technical Operations Division</option>
@@ -125,69 +161,172 @@
 
     </form>
 </div>
-<script>
-let queuedFiles = [];
 
-const form = document.getElementById('request-form');
-const submitBtn = document.getElementById('submit-btn');
-const fileInput = document.getElementById('file-input');
-const clearFilesBtn = document.getElementById('clear-files-btn');
+<!-- Add Partner Modal -->
+<div id="new-modal" 
+     class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+    <div class="bg-white rounded-xl shadow-xl max-w-md w-full p-6">
+        <h3 class="text-lg text-slate-900 font-bold mb-4">Add Partner Agency</h3>
+        <form id="new-form" method="POST">
+            @csrf
+            <div class="space-y-3 text-slate-900 font-bold">
+                <input type="text" name="name" placeholder="Partner Name"
+                       class="w-full px-3 py-2 border rounded" required>
+                <input type="text" name="code" placeholder="CODE" class="w-full px-3 py-2 border rounded" required>
+                <input type="email" name="email" placeholder="Email" class="w-full px-3 py-2 border rounded">
+                <input type="text" name="contactNo" placeholder="Contact No" class="w-full px-3 py-2 border rounded">
+                <select name="type" class="w-full px-3 py-2 border rounded">
+                    <option value="NGA">NGA</option>
+                    <option value="LGU">LGU</option>
+                    <option value="SUC">SUC</option>
+                    <option value="NGO">NGO</option>
+                    <option value="Others" selected>Others</option>
+                </select>
+            </div>
 
-// File Handling
-fileInput.addEventListener('change', (e) => {
-    const newFiles = Array.from(e.target.files);
-    queuedFiles = [...queuedFiles, ...newFiles];
-    updateFileDisplay();
-});
-
-clearFilesBtn.addEventListener('click', () => {
-    queuedFiles = [];
-    updateFileDisplay();
-});
-
-function updateFileDisplay() {
-    const fileItems = document.getElementById('file-items');
-    const fileListContainer = document.getElementById('file-list');
-    
-    if (queuedFiles.length > 0) {
-        fileListContainer.classList.remove('hidden');
-        document.getElementById('file-count').textContent = queuedFiles.length;
-        fileItems.innerHTML = ''; 
-        queuedFiles.forEach((file, index) => {
-            const div = document.createElement('div');
-            div.className = "flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100";
-            div.innerHTML = `
-                <div class="flex items-center gap-3 overflow-hidden">
-                    <i class="fas fa-file-alt text-indigo-500"></i>
-                    <p class="text-[11px] font-black text-slate-700 truncate">${file.name}</p>
-                </div>
-                <button type="button" class="remove-file-btn text-rose-500 px-2"><i class="fas fa-times"></i></button>
-            `;
-            div.querySelector('.remove-file-btn').addEventListener('click', () => {
-                queuedFiles.splice(index, 1);
-                updateFileDisplay();
-            });
-            fileItems.appendChild(div);
-        });
-    } else {
-        fileListContainer.classList.add('hidden');
-    }
-}
-
-// CRITICAL FIX: Transfer queuedFiles array to the real input before submission
-form.addEventListener('submit', (e) => {
-    if (!validateCurrentStep()) {
-        e.preventDefault();
-        return;
-    }
-
-    // This creates a virtual FileList from our JavaScript array
-    const dataTransfer = new DataTransfer();
-    queuedFiles.forEach(file => dataTransfer.items.add(file));
-    
-    // Inject the files into the real input so Laravel can read them as an array
-    fileInput.files = dataTransfer.files;
-});
-
-</script>
+            <div class="flex justify-end gap-3 mt-4">
+                <button type="button" class="text-slate-900 px-4 py-2 bg-gray-200 rounded-xl font-bold hover:bg-gray-300"
+                        onclick="closeNewPartnerModal()">Cancel</button>
+                <button type="button" class="px-4 py-2 bg-indigo-600 text-white rounded-xl font-bold hover:bg-indigo-700" onclick="submitPartner()">
+                    Add Partner
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
 @endsection
+@push('scripts')
+<script>
+    let queuedFiles = [];
+
+    const form = document.getElementById('request-form');
+    const submitBtn = document.getElementById('submit-btn');
+    const fileInput = document.getElementById('file-input');
+    const clearFilesBtn = document.getElementById('clear-files-btn');
+
+    // File Handling
+    fileInput.addEventListener('change', (e) => {
+        const newFiles = Array.from(e.target.files);
+        queuedFiles = [...queuedFiles, ...newFiles];
+        updateFileDisplay();
+    });
+
+    clearFilesBtn.addEventListener('click', () => {
+        queuedFiles = [];
+        updateFileDisplay();
+    });
+
+    function updateFileDisplay() {
+        const fileItems = document.getElementById('file-items');
+        const fileListContainer = document.getElementById('file-list');
+        
+        if (queuedFiles.length > 0) {
+            fileListContainer.classList.remove('hidden');
+            document.getElementById('file-count').textContent = queuedFiles.length;
+            fileItems.innerHTML = ''; 
+            queuedFiles.forEach((file, index) => {
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-4 bg-slate-50 rounded-2xl border border-slate-100";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <i class="fas fa-file-alt text-indigo-500"></i>
+                        <p class="text-[11px] font-black text-slate-700 truncate">${file.name}</p>
+                    </div>
+                    <button type="button" class="remove-file-btn text-rose-500 px-2"><i class="fas fa-times"></i></button>
+                `;
+                div.querySelector('.remove-file-btn').addEventListener('click', () => {
+                    queuedFiles.splice(index, 1);
+                    updateFileDisplay();
+                });
+                fileItems.appendChild(div);
+            });
+        } else {
+            fileListContainer.classList.add('hidden');
+        }
+    }
+
+    // CRITICAL FIX: Transfer queuedFiles array to the real input before submission
+    form.addEventListener('submit', (e) => {
+        if (!validateCurrentStep()) {
+            e.preventDefault();
+            return;
+        }
+
+        // This creates a virtual FileList from our JavaScript array
+        const dataTransfer = new DataTransfer();
+        queuedFiles.forEach(file => dataTransfer.items.add(file));
+        
+        // Inject the files into the real input so Laravel can read them as an array
+        fileInput.files = dataTransfer.files;
+    });
+
+    const partnerSelect = document.getElementById('partner');
+
+    partnerSelect.addEventListener('change', () => {
+        const selected = partnerSelect.options[partnerSelect.selectedIndex];
+
+        const emailInput = document.querySelector('input[name="email"]');
+        const contactInput = document.querySelector('input[name="contactNo"]');
+        const ref = document.getElementById('reference');
+        const today = new Date().toISOString().split('T')[0];
+
+        if (emailInput) emailInput.value = selected.dataset.email || '';
+        if (contactInput) contactInput.value = selected.dataset.contact || '';
+        
+        if (ref) ref.value = 'REQ.' + (selected.dataset.code || 'XXX') + '.' + today;
+    });
+
+
+    function openAddPartnerModal() {
+        document.getElementById('new-form').reset();
+        document.getElementById('new-modal').classList.remove('hidden');
+    }
+
+    function closeNewPartnerModal() {
+        document.getElementById('new-modal').classList.add('hidden');
+    }
+
+    async function submitPartner() {
+        const form = document.getElementById('new-form');
+        const formData = new FormData(form);
+
+        try {
+            const res = await fetch("{{ route('settings.partners.store') }}", {
+                method: 'POST',
+                headers: {
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept': 'application/json'
+                },
+                body: formData
+            });
+
+            if (!res.ok) throw new Error('Failed to add partner');
+            const data = await res.json();
+
+            // Access the partner object
+            const partner = data.partner;
+
+            // Add new option to select in exact same format
+            const select = document.getElementById('partner');
+            const option = document.createElement('option');
+            option.value = partner.id;
+            option.dataset.code = partner.code ?? '';
+            option.dataset.email = partner.email ?? '';
+            option.dataset.contact = partner.contactNo ?? '';
+            option.textContent = `${partner.code} - ${partner.name}`;
+            option.selected = true;
+            select.appendChild(option);
+
+            // Optional: trigger change event if you have logic on change
+            select.dispatchEvent(new Event('change'));
+
+            // Close modal
+            closeNewPartnerModal();
+            form.reset();
+
+        } catch (err) {
+            alert(err.message);
+        }
+    }
+</script>
+@endpush

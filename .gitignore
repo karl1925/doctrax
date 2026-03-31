@@ -8,7 +8,6 @@
 /.idea
 /.nova
 /.phpunit.cache
-/.vscode
 /.zed
 /auth.json
 /node_modules
@@ -38,10 +37,4 @@ yarn-error.log
 /.zed
 /.phpunit.cache
 /.phpunit.result.cache  
-
-
-
-
-
-
-
+/storage/logs

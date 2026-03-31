@@ -4,9 +4,13 @@ import forms from '@tailwindcss/forms';
 /** @type {import('tailwindcss').Config} */
 export default {
     content: [
+        // Laravel blade files
         './vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php',
         './storage/framework/views/*.php',
         './resources/views/**/*.blade.php',
+
+        // Your custom HTML/JS for mobile or frontend
+        './src/**/*.{html,js,jsx,ts,tsx,vue}',
     ],
 
     theme: {
@@ -19,13 +23,3 @@ export default {
 
     plugins: [forms],
 };
-
-module.exports = {
-  content: [
-    './src/**/*.{html,js,jsx,ts,tsx,vue}', // make sure all mobile HTML/JS is included
-  ],
-  theme: {
-    extend: {},
-  },
-  plugins: [],
-}

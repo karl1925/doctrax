@@ -1,79 +1,147 @@
-<!-- Notification Icon -->
-<div class="">
+<div x-data="{ 
+        open:false, 
+        menu:false, 
+        filter:'unread' 
+    }" 
+    class="">
+
     <!-- Bell Button -->
-    <button id="notification-btn" class="relative focus:outline-none w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 transition-all ml-2">
-        <i class="fas fa-bell text-lg text-slate-400"></i>
+    <button id="notification-btn"
+        @click="open = !open"
+        :class="open ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400'"
+        class="relative w-10 h-10 flex items-center justify-center rounded-xl hover:text-indigo-600 hover:bg-indigo-50 transition-all">
+
+        <i class="fas fa-bell text-lg"></i>
+
         <span id="notification-count"
-            class="absolute hidden  -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5">
-            @php
-                $count = auth()->user()->unreadNotifications->count();
-                echo $count > 99 ? '99+' : $count;
-            @endphp
+            class="hidden absolute -top-1 -right-1 bg-rose-500 text-white text-[10px] font-bold rounded-full px-1.5"
+            x-show="$refs.count.innerText != '0'"
+        >
+            <span x-ref="count">
+                @php
+                    $count = auth()->user()->unreadNotifications->count();
+                    echo $count > 99 ? '99+' : $count;
+                @endphp
+            </span>
         </span>
     </button>
 
     <!-- Dropdown -->
-    <div id="notification-dropdown" class="absolute hidden right-0 mt-2 w-80 bg-white shadow-lg rounded-lg border border-slate-100 min-h-[200px] overflow-hidden z-50">
-        <div class="flex items-center justify-between px-2 py-2 bg-slate-200 border-b border-slate-200">
-            <div class="p-2 text-md font-bold text-slate-500 border-b border-slate-100 flex justify-between items-center">
-                <span>Notifications</span>
-            </div>
+    <div id="notif-drop"
+        x-show="open"
+        @click.outside="open=false; menu=false"
+        x-transition
+        class="absolute max-h-[calc(100vh-65px)] right-0 mt-2 min-w-80 bg-white shadow-lg rounded-xl border border-slate-100 min-h-[200px] overflow-x-auto overflow-y-hidden z-50">
+
+        <!-- Header -->
+        <div class="flex items-center justify-between px-3 py-2 bg-slate-100 border-b">
+
+            <span class="font-bold text-slate-600 text-sm">
+                Notifications
+            </span>
+
+            <!-- Three Dots -->
             <div class="relative">
-                <button id="notif-menu-btn"
-                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-100 text-slate-500 transition">
+
+                <button
+                    @click.stop="menu = !menu"
+                    class="w-8 h-8 flex items-center justify-center rounded-full hover:bg-slate-200 text-slate-500">
                     <i class="fa-solid fa-ellipsis-vertical text-sm"></i>
                 </button>
-                <div id="notif-menu"
-                    class="hidden absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg z-50">
+
+                <!-- Menu -->
+                <div
+                    x-show="menu"
+                    @click.outside="menu=false"
+                    x-transition
+                    class="absolute right-0 mt-2 w-56 bg-white border border-slate-200 rounded-lg shadow-lg"
+                    style="z-index: 9000">
+
                     <button id="mark-all-read"
                         class="flex items-center gap-2 w-full px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M5 13l4 4L19 7"/>
-                        </svg>
-                        Mark All as Read
+                        ✓ Mark All as Read
                     </button>
+
                     <button id="clear-read-btn"
-                            class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M6 18L18 6M6 6l12 12"/>
-                        </svg>
-                        Clear Read
+                        class="flex items-center gap-2 w-full px-4 py-2 text-sm text-red-600 hover:bg-slate-100">
+                        ✕ Clear Read
                     </button>
+
                     <hr>
-                    <a href="{{ route('notifications.index') }}"
-                        class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M20 13V5a2 2 0 00-2-2H6a2 2 0 00-2 2v8m16 0l-2 6H6l-2-6m16 0h-4a2 2 0 01-2-2V9H10v2a2 2 0 01-2 2H4"/>
-                        </svg>
-                        Open Notifications
-                    </a>
+
                     <a href="/settings/preferences"
-                        class="flex items-center gap-2 px-4 py-2 text-sm text-slate-600 hover:bg-slate-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4"
-                            fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                d="M11.983 5.5a1 1 0 011.034 0l1.665.962a1 1 0 00.998 0l1.665-.962a1 1 0 011.034 0l1.732 1a1 1 0 01.5.866v2a1 1 0 01-.5.866l-1.732 1a1 1 0 00-.5.866v2a1 1 0 01-.5.866l-1.732 1a1 1 0 01-1.034 0l-1.665-.962a1 1 0 00-.998 0l-1.665.962a1 1 0 01-1.034 0l-1.732-1a1 1 0 01-.5-.866v-2a1 1 0 00-.5-.866l-1.732-1a1 1 0 01-.5-.866v-2a1 1 0 01.5-.866l1.732-1a1 1 0 00.5-.866v-2a1 1 0 01.5-.866l1.732-1z"/>
-                        </svg>
+                        class="block px-4 py-2 text-sm hover:bg-slate-100">
                         Notification Preferences
                     </a>
                 </div>
             </div>
         </div>
+
+        <!-- Filters -->
         <div class="flex gap-2 items-center px-4 py-2">
-            <button id="notif-filter-all" class="px-2 py-0.5 text-xs font-semibold rounded bg-slate-100">All</button>
-            <button id="notif-filter-unread" class="px-2 py-0.5 text-xs font-semibold rounded bg-indigo-50 text-indigo-700">Unread</button>
+
+            <button id="notif-filter-all"
+                @click="filter='all'"
+                :class="filter=='all'
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'bg-slate-100'"
+                class="px-2 py-0.5 text-xs font-semibold rounded">
+                All
+            </button>
+
+            <button id="notif-filter-unread"
+                @click="filter='unread'"
+                :class="filter=='unread'
+                    ? 'bg-indigo-50 text-indigo-700'
+                    : 'bg-slate-100'"
+                class="px-2 py-0.5 text-xs font-semibold rounded">
+                Unread
+            </button>
+
         </div>
+
         <!-- Notification Items -->
-        <div id="notification-items" 
-            class="overflow-y-auto" 
-            style="max-height: calc(100vh - 8rem);">
+        <div class="flex items-center px-4 py-2 text-[14px] font-bold">
+            New
         </div>
+        <div id="new-notification-items" class="flex-1"
+             style="z-index: 8000;">
+        </div>
+        <div id="new-empty" class="flex-1 p-4 text-center text-slate-400 text-xs"
+             style="z-index: 8000; display: none;">
+             <div class="items-center justify-center flex-col mb-2">
+                <i class="fa-solid text-xl fa-bell-slash"></i>
+                <div>No new notifications</div>
+            </div>
+        </div>
+        
+        <div id="earlier-label" class="flex items-center px-4 py-2 text-[14px] font-bold">
+            Earlier
+        </div>
+        <div id="earlier-empty" class="flex-1 p-4 text-center text-slate-400 text-xs"
+             style="z-index: 8000; display: none;">
+             <div class="items-center justify-center flex-col mb-2">
+                <i class="fa-solid text-xl fa-bell-slash"></i>
+                <div>No notifications</div>
+            </div>
+        </div>
+        <div id="earlier-notification-items" class="flex-1"
+             style="z-index: 8000;">
+        </div>
+        
+        <button id="fetch-more-btn" class="block w-full px-4 py-2 text-sm bg-indigo-50 text-indigo-700 rounded mt-2">
+            See More
+        </button>
+
+        <!-- Common Item Menu -->
+        <div id="common-item-menu" class="hidden absolute w-32 bg-white border rounded shadow z-50 text-sm">
+            <ul>
+                <li class="px-3 py-2 hover:bg-slate-100 cursor-pointer" onclick="menuAction('view')">View</li>
+                <li class="px-3 py-2 hover:bg-slate-100 cursor-pointer" onclick="menuAction('mark')">Mark as Read</li>
+                <li class="px-3 py-2 hover:bg-slate-100 cursor-pointer text-red-500" onclick="menuAction('delete')">Delete</li>
+            </ul>
+        </div>
+        
     </div>
-</div>
     
+</div>

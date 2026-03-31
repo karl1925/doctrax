@@ -26,7 +26,7 @@ class NotifyUpdate extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return $this->sendMail ? ['mail', 'database'] : ['database'];
+        return $this->sendMail ? ['database', 'mail'] : ['database'];
     }
 
     public function toMail($notifiable): MailMessage
@@ -47,6 +47,7 @@ class NotifyUpdate extends Notification implements ShouldQueue
         return [
             'request_id' => $this->external->id,
             'subject' => 'Update',
+            'created_at' => now(),
             'created_by' => $this->creator_id,
             'message' => 'An update has been added to this task.',
             'url' => $this->url,

@@ -26,7 +26,7 @@ class NotifyAccepted extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return $this->sendMail ? ['mail', 'database'] : ['database'];
+        return $this->sendMail ? ['database', 'mail'] : ['database'];
     }
 
     public function toMail($notifiable): MailMessage
@@ -48,8 +48,8 @@ class NotifyAccepted extends Notification implements ShouldQueue
         return [
             'request_id' => $this->external->id,
             'subject' => 'Task Accepted',
+            'created_at' => now(),
             'created_by' => $this->creator_id,
-            'message' => 'An external request you are monitoring has been accepted.',
             'url' => $this->url,
         ];
     }

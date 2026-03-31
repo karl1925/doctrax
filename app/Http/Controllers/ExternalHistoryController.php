@@ -7,13 +7,14 @@ use Illuminate\Http\Request;
 
 class ExternalHistoryController extends Controller
 {
-    public static function log($userId, $externalId, $action, $remarks = null)
+    public static function log($userId, $externalId, $action, $remarks = null, $param = null)
     {
         ExternalHistory::create([
             'user_id'     => $userId,
             'external_id' => $externalId,
             'action'      => $action,
             'remarks'     => $remarks,
+            'param'     => $param,
         ]);
     }
 }

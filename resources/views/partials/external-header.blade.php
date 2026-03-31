@@ -27,45 +27,47 @@
                 </div>
             @endif
         </div>
-        <h1 class="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-[1.1] truncate group" title="{{ $external->subject }}">
+        <h1 class="text-3xl md:text-4xl font-black text-slate-900 dark:text-white tracking-tight leading-[1.1] truncate group" title="{{ $external->subject }}">
             {{ $external->subject }}
         </h1>
     </div>
 
-    @if($external->status === 'completed' && $external->creator->id === auth()->user()->id)
-        <div class="flex items-center gap-2 self-start lg:self-center">
-            <div class="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
+    @if($external->status === 'completed' || $external->status === 'pending')
+        @if($external->creator->id === auth()->user()->id)
+            <div class="flex items-center gap-2 self-start lg:self-center">
+                <div class="h-8 w-px bg-slate-200 mx-1 hidden sm:block"></div>
 
-            @if(!$external->trashed())
-                {{-- Archive Button --}}
-                <form action="{{ route('externals.destroy', $external->id) }}" 
-                    method="POST" 
-                    onsubmit="return confirm('Archive this Request?');"
-                    class="inline">
-                    @csrf
-                    @method('DELETE')
-                    <button type="submit" 
-                            class="group flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm shadow-rose-600/5 active:scale-95">
-                        <i class="fa-solid fa-box-archive text-sm group-hover:shake transition-transform"></i>
-                        <span class="text-xs font-bold">Archive</span>
-                    </button>
-                </form>
-            @else
-                {{-- Restore Button --}}
-                <form action="{{ route('externals.restore', $external->id) }}" 
-                    method="POST" 
-                    onsubmit="return confirm('Restore this Request?');"
-                    class="inline">
-                    @csrf
-                    @method('PATCH')
-                    <button type="submit" 
-                            class="group flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-100 rounded-xl text-green-600 hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm shadow-green-600/5 active:scale-95">
-                        <i class="fa-solid fa-box-archive-arrow-up text-sm group-hover:shake transition-transform"></i>
-                        <span class="text-xs font-bold">Restore</span>
-                    </button>
-                </form>
-            @endif
-        </div>
+                @if(!$external->trashed())
+                    {{-- Archive Button --}}
+                    <form action="{{ route('externals.destroy', $external->id) }}" 
+                        method="POST" 
+                        onsubmit="return confirm('Archive this Request?');"
+                        class="inline">
+                        @csrf
+                        @method('DELETE')
+                        <button type="submit" 
+                                class="group flex items-center gap-2 px-4 py-2.5 bg-rose-50 border border-rose-100 rounded-xl text-rose-600 hover:bg-rose-600 hover:text-white hover:border-rose-600 transition-all shadow-sm shadow-rose-600/5 active:scale-95">
+                            <i class="fa-solid fa-box-archive text-sm group-hover:shake transition-transform"></i>
+                            <span class="text-xs font-bold">Archive</span>
+                        </button>
+                    </form>
+                @else
+                    {{-- Restore Button --}}
+                    <form action="{{ route('externals.restore', $external->id) }}" 
+                        method="POST" 
+                        onsubmit="return confirm('Restore this Request?');"
+                        class="inline">
+                        @csrf
+                        @method('PATCH')
+                        <button type="submit" 
+                                class="group flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-100 rounded-xl text-green-600 hover:bg-green-600 hover:text-white hover:border-green-600 transition-all shadow-sm shadow-green-600/5 active:scale-95">
+                            <i class="fa-solid fa-box-archive-arrow-up text-sm group-hover:shake transition-transform"></i>
+                            <span class="text-xs font-bold">Restore</span>
+                        </button>
+                    </form>
+                @endif
+            </div>
+        @endif
     @elseif($external->status === 'pending')
         <div class="flex items-center gap-2 self-start lg:self-center">
             <!-- <button class="flex items-center gap-2 px-4 py-2.5 bg-white border border-slate-200 rounded-xl text-slate-600 hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm active:scale-95">

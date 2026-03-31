@@ -26,7 +26,7 @@ class NotifyAssignee extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return ['mail', 'database'];
+        return ['database', 'mail'];
     }
 
     public function toMail($notifiable): MailMessage
@@ -47,8 +47,8 @@ class NotifyAssignee extends Notification implements ShouldQueue
         return [
             'request_id' => $this->external->id,
             'subject' => 'New Assignment',
+            'created_at' => now(),
             'created_by' => $this->creator_id,
-            'message' => 'A request has been assigned to you for your action.',
             'url' => $this->url,
         ];
     }

@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="min-h-screen bg-slate-50/50 pb-20">
+<div class="pb-20">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-4">
         
         <!-- Header Section -->
@@ -14,17 +14,17 @@
                         <li class="text-indigo-600 font-bold">ASSIGNMENT</li>
                     </ol>
                 </nav>
-                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 tracking-tight flex items-center gap-3">
+                <h1 class="text-3xl md:text-4xl font-extrabold text-gray-900 dark:text-white tracking-tight flex items-center gap-3">
                     <div class="p-2 bg-orange-500 rounded-lg shadow-lg shadow-gray-200">
                         <i class="fa-solid fa-user-check text-white"></i>
                     </div>
                     Assignments
                 </h1>
-                <p class="text-slate-500 font-medium text-sm">
+                <p class="text-slate-500 dark:text-white font-medium text-sm">
                     @if($search == '' && $priority == '')
-                        There {{ $externals->count() > 1 ? 'are' : 'is' }} <span class="text-slate-900 font-bold">{{ $externals->count() }} {{ Str::plural('request', $externals->count()) }}</span> assigned to you.
+                        There {{ $externals->count() > 1 ? 'are' : 'is' }} <span class="font-bold">{{ $externals->count() }} {{ Str::plural('request', $externals->count()) }}</span> assigned to you.
                     @else
-                        There {{ $externals->count() > 1 ? 'are' : 'is' }} <span class="text-slate-900 font-bold">{{ $externals->count() }} {{ Str::plural('request', $externals->count()) }}</span> matching your filters.
+                        There {{ $externals->count() > 1 ? 'are' : 'is' }} <span class="font-bold">{{ $externals->count() }} {{ Str::plural('request', $externals->count()) }}</span> matching your filters.
                     @endif
                 </p>
             </div>

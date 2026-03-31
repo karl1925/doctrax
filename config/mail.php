@@ -112,7 +112,7 @@ return [
     */
 
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'noreply@dictr2.online'),
+        'address' => env('MAIL_FROM_ADDRESS', 'noreply@dictr2.cloud'),
         'name' => env('MAIL_FROM_NAME', 'DocTrax'),
     ],
 

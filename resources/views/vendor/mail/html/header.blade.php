@@ -2,7 +2,7 @@
 <tr>
 <td class="header">
 <a href="{{ $url }}" style="display: inline-block;">
-<img src="https://doctrax.dictr2.online/logo.png" class="logo" alt="DocTrax Logo">
+<img src="https://doctrax.dictr2.cloud/logo.png" class="logo">
 </a>
 </td>
 </tr>

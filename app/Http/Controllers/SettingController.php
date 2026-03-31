@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Models\{User, Setting};
+use App\Models\{User, Setting, Partner};
 use Laravolt\Avatar\Facade as Avatar;
 
 class SettingController extends Controller
@@ -95,18 +95,15 @@ class SettingController extends Controller
         return back()->with('success', ucfirst($role) . ' added successfully.');
     }
 
-    // Remove user from a role
     public function removeUser($role, $userId)
     {
         $role = strtolower($role);
         Setting::where('setting', $role)
             ->where('user_id', $userId)
             ->delete();
-
         return back()->with('success', ucfirst($role) . ' removed successfully.');
     }
 
-    // Update notification preferences
     public function updatePreferences(Request $request)
     {        
         $preference = auth()->user()->preference;
@@ -121,5 +118,65 @@ class SettingController extends Controller
             'internal_email_notify_rejected' => $request->has('internal_email_notify_rejected'),
         ]); 
         return back()->with('success', 'Notification preferences updated successfully.');
+    }
+
+    public function partners(Request $request) {
+        $allowedSorts = ['name', 'code', 'email', 'contactNo', 'type'];
+        $sortField = in_array($request->query('sort'), $allowedSorts) ? $request->query('sort') : 'name';
+        $sortOrder = $request->query('direction') === 'desc' ? 'desc' : 'asc';
+        $search = $request->query('search');
+        $query = Partner::withoutTrashed();
+        if ($search) {
+            $query->where(function($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+        $partners = $query->orderBy($sortField, $sortOrder)->paginate(10);
+        return view('settings.partners', compact('partners', 'sortField', 'sortOrder'));
+    }
+
+    public function addPartner(Request $request)
+    {
+        // Validate input
+        $data = $request->validate([
+            'name'      => 'required|string|max:255|unique:partners,name',
+            'code'      => 'required|string|max:50|unique:partners,code|alpha_num',
+            'email'     => 'nullable|email|max:255',
+            'contactNo' => 'nullable|string|max:20',
+            'type'      => 'required|in:NGA,LGU,SUC,NGO,Others',
+        ]);
+
+        // Ensure code is uppercase
+        $data['code'] = strtoupper($data['code']);
+
+        // Create partner
+        $partner = Partner::create($data);
+
+        // Return JSON response with the new partner
+        return response()->json([
+            'success' => true,
+            'message' => 'Partner agency added successfully.',
+            'partner' => $partner
+        ]);
+    }
+
+    public function removePartner($id)
+    {
+        Partner::find($id)
+            ->delete();
+        return back()->with('success', 'Partner removed successfully.');
+    }
+
+    public function searchAgencies(Request $request)
+    {
+       $query = $request->get('q', '');
+
+        $results = Partner::where('name', 'like', "%{$query}%")
+                          ->orderBy('name')
+                          ->limit(10)
+                          ->pluck('name'); // returns only names
+
+        return response()->json($results);
     }
 }

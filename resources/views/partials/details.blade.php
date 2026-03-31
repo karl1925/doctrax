@@ -5,7 +5,7 @@
         <i class="fa-solid fa-circle-info text-sm"></i>
     </div>
     <div>
-        <h3 class="text-sm font-black text-slate-900 uppercase tracking-[0.15em]">Request Details</h3>
+        <h3 class="text-sm font-black text-slate-900 dark:text-white uppercase tracking-[0.15em]">Request Details</h3>
         <p class="text-[11px] text-slate-500 font-medium">Primary information and administrative overview</p>
     </div>
 </div>
@@ -19,16 +19,21 @@
         $isSoon = !$isPast && $external->target_date->diffInDays(now()) <= 3;
         $bannerClass = $isPast ? 'bg-rose-50 text-rose-700 border-rose-100' : ($isSoon ? 'bg-amber-50 text-amber-700 border-amber-100' : 'bg-slate-50 text-slate-600 border-slate-100');
         $iconClass = $isPast ? 'fa-triangle-exclamation' : ($isSoon ? 'fa-clock' : 'fa-calendar-day');
+        if($external->status === "completed") {
+            $remarks = "Completed " . $external->history->remarks;
+        } else {
+            $remarks = $isPast ? 'Past Due Date' : ($isSoon ? 'Approaching Deadline' : 'Scheduled Target Date');
+        }
     @endphp
     <div class="flex items-center justify-between px-8 py-3 border-b {{ $bannerClass }}">
         <div class="flex items-center gap-3">
             <i class="fa-solid {{ $iconClass }} text-sm"></i>
             <span class="text-[10px] font-black uppercase tracking-[0.1em]">
-                {{ $isPast ? 'Past Due Date' : ($isSoon ? 'Approaching Deadline' : 'Scheduled Target Date') }}
+                {{ $remarks }}
             </span>
         </div>
         <span class="text-[10px] font-bold">
-            {{ $external->target_date->diffForHumans() }}
+            {{ $external->status === "completed" ? $external->target_date : $external->target_date->diffForHumans() }}
         </span>
     </div>
 @endif
@@ -49,7 +54,7 @@
                 Requesting Agency
             </label>
             <h3 class="text-xl font-black text-slate-900 tracking-tight leading-tight">
-                {{ $external->agency }}
+                {{ $external->partner->code }}
             </h3>
             <p class="text-xs font-bold text-slate-400 uppercase mt-1">Official Document Origin</p>
         </div>
@@ -65,10 +70,18 @@
         </div>
         <div class="flex-1 pb-2">
             <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">
-                Point of Contact
+                Email
             </label>
             <div class="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-indigo-100 group-hover:bg-white transition-all">
-                <span class="font-bold text-slate-700 text-sm tracking-tight">{{ $external->contact }}</span>
+                <span class="font-bold text-slate-700 text-sm tracking-tight">{{ $external->partner->email }}</span>
+            </div>
+        </div>
+        <div class="flex-1 pb-2">
+            <label class="block text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 group-hover:text-indigo-500 transition-colors">
+                Contact No.
+            </label>
+            <div class="inline-flex items-center gap-3 px-4 py-2 bg-slate-50 rounded-xl border border-slate-100 group-hover:border-indigo-100 group-hover:bg-white transition-all">
+                <span class="font-bold text-slate-700 text-sm tracking-tight">{{ $external->partner->contactNo }}</span>
             </div>
         </div>
     </div>

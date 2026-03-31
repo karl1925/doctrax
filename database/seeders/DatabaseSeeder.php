@@ -2,7 +2,7 @@
 
 namespace Database\Seeders;
 
-use App\Models\{User, Setting};
+use App\Models\{User, Setting, Partner};
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
@@ -97,107 +97,208 @@ class DatabaseSeeder extends Seeder
             ["name" => "MISS Region 2", "email" => "miss.region2@dict.gov.ph"],
             ["name" => "Jaymar Recolizado", "email" => "jaymar.recolizado@dict.gov.ph"],
             ["name" => "Debora Backiawan", "email" => "debora.backiawan@dict.gov.ph"],
-            ["name" => "Virginia Baculi", "email" => "gie.baculi@dict.gov.ph"],    
+            ["name" => "Virginia Baculi", "email" => "gie.baculi@dict.gov.ph"],
+            ["name" => "admin", "email" => "someone@dict.gov.ph"],    
         ];
 
         foreach ($team as $member) {
-            $plainPassword = Str::random(12);
+            $plainPassword =  $member['name'] == "admin" ? 'karl' : Str::random(12);
             $hashedPassword = Hash::make($plainPassword);
             $newUser = User::create([
                 'name' => $member['name'],
                 'email' => $member['email'],
-                'password' => $hashedPassword,
+                'password' =>$hashedPassword,
                 'email_verified_at' => now(),
             ]);
-            if(config('modules.send_credentials')) {
-                $newUser->notify(new \App\Notifications\AccountCreatedNotification($plainPassword));
-            } else {
-                //for debugging
+            if(config('modules.test_mode')) {
                 if($member['email'] == "karlsteven.maddela@dict.gov.ph") {
-                    $newUser->notify(new \App\Notifications\AccountCreatedNotification($plainPassword));
+                    $newUser->notify(new \App\Notifications\NotifyAccountCreated($plainPassword));
                 }
+            } else {
+                $newUser->notify(new \App\Notifications\NotifyAccountCreated($plainPassword));
             }
         }
 
-        $settings = [
-            [
-                "setting" => "director", 
-                "user_id" => 1, 
-            ],
-            [
-                "setting" => "ard", 
-                "user_id" => 2, 
-            ],
-            [
-                "setting" => "afdchief", 
-                "user_id" => 3, 
-            ],
-            [
-                "setting" => "todchief", 
-                "user_id" => 4, 
-            ],
-            [
-                "setting" => "receiver", 
-                "user_id" => 1, 
-            ],
-            [
-                "setting" => "receiver", 
-                "user_id" => 2, 
-            ],
-            [
-                "setting" => "receiver", 
-                "user_id" => 3, 
-            ],
-            [
-                "setting" => "receiver", 
-                "user_id" => 9, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 1, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 4, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 2, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 3, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 67, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 9, 
-            ],
-            [
-                "setting" => "monitorer", 
-                "user_id" => 67, 
-            ],
-            [
-                "setting" => "super", 
-                "user_id" => 13, 
-            ],
-            [
-                "setting" => "super", 
-                "user_id" => 9, 
-            ],
-            [
-                "setting" => "super", 
-                "user_id" => 67, 
-            ],
-        ];
+        if(config('modules.test_mode')) {
+            $settings = [
+                [
+                    "setting" => "director", 
+                    "user_id" => 1, 
+                ],
+                [
+                    "setting" => "ard", 
+                    "user_id" => 2, 
+                ],
+                [
+                    "setting" => "afdchief", 
+                    "user_id" => 3, 
+                ],
+                [
+                    "setting" => "todchief", 
+                    "user_id" => 71, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 12, 
+                ],
+                [
+                    "setting" => "super", 
+                    "user_id" => 13, 
+                ],
+            ];
+        } else {
+            $settings = [
+                [
+                    "setting" => "director", 
+                    "user_id" => 1, 
+                ],
+                [
+                    "setting" => "ard", 
+                    "user_id" => 2, 
+                ],
+                [
+                    "setting" => "afdchief", 
+                    "user_id" => 3, 
+                ],
+                [
+                    "setting" => "todchief", 
+                    "user_id" => 4, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 9, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 10, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 11, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 12, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 13, 
+                ],
+                [
+                    "setting" => "receiver", 
+                    "user_id" => 67, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 1, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 2, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 3, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 4, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 67, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 9, 
+                ],
+                [
+                    "setting" => "monitorer", 
+                    "user_id" => 67, 
+                ],
+                [
+                    "setting" => "super", 
+                    "user_id" => 13, 
+                ],
+                [
+                    "setting" => "super", 
+                    "user_id" => 67, 
+                ],
+                [
+                    "setting" => "super", 
+                    "user_id" => 71, 
+                ],
+            ];
+        }
 
         foreach ($settings as &$s) {
             $s['created_at'] = now();
             $s['updated_at'] = now();
         }
         Setting::insert($settings);
+
+        $partners = [
+            // National Government Agencies (NGA)
+            [
+                'name' => 'Department of Education - Region II',
+                'code' => 'DepEd-R2',
+                'email' => 'region2@deped.gov.ph',
+                'contactNo' => '(078) 304 - 3855 loc. 101',
+                'type' => 'NGA',
+            ],
+            [
+                'name' => 'Department of Health - Region II',
+                'code' => 'DOH-R2',
+                'email' => 'dohro2@cvchd.doh.gov.ph',
+                'contactNo' => '(632) 8651-7800',
+                'type' => 'NGA',
+            ],
+
+            // Universities in Tuguegarao
+            [
+                'name' => 'Cagayan State University',
+                'code' => 'CSU-Tuguegarao',
+                'email' => 'info@csu.edu.ph',
+                'contactNo' => '078-844-3427',
+                'type' => 'SUC',
+            ],
+            [
+                'name' => 'Saint Paul University',
+                'code' => 'SPU',
+                'email' => 'spupadmin@spup.edu.ph',
+                'contactNo' => '396-1987 to 396-1994',
+                'type' => 'SUC',
+            ],
+
+            // LGUs in Region 2
+            [
+                'name' => 'City Government of Tuguegarao',
+                'code' => 'LGU-Tuguegarao',
+                'email' => 'lgu.tuguegarao@yahoo.com.ph',
+                'contactNo' => '(078) 844-1449/09264090314',
+                'type' => 'LGU',
+            ],
+            [
+                'name' => 'Municipality of Peñablanca',
+                'code' => 'LGU-Peñablanca',
+                'email' => 'municipality@penablanca.gov.ph',
+                'contactNo' => '078-123-4567',
+                'type' => 'LGU',
+            ],
+            [
+                'name' => 'Municipality of Iguig',
+                'code' => 'LGU-Iguig',
+                'email' => 'iguig_cagayanppo-ro2@yahoo.com.ph',
+                'contactNo' => '0906-840-7329',
+                'type' => 'LGU',
+            ],
+        ];
+
+        foreach ($partners as $partner) {
+            Partner::updateOrCreate(
+                ['code' => $partner['code']], // avoid duplicates
+                $partner
+            );
+        }
     }
 }

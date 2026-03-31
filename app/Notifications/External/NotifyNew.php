@@ -26,7 +26,7 @@ class NotifyNew extends Notification implements ShouldQueue
 
     public function via($notifiable): array
     {
-        return $this->sendMail ? ['mail', 'database'] : ['database'];
+        return $this->sendMail ? ['database', 'mail'] : ['database'];
     }
 
     public function toMail($notifiable): MailMessage
@@ -47,6 +47,7 @@ class NotifyNew extends Notification implements ShouldQueue
         return [
             'request_id' => $this->external->id,
             'subject' => 'New',
+            'created_at' => now(),
             'created_by' => $this->creator_id,
             'message' => 'A new external request has been created.',
             'url' => $this->url,

@@ -13,10 +13,21 @@ class DashboardController extends Controller
     {
         $user = Auth::user();
         $userId = $user->id;
-        $exstats = External::withoutTrashed()
-            ->selectRaw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) AS pending")
-            ->first()
-            ->toArray();
+        $exstats['endorsedAFD'] = External::withoutTrashed()->where('status', 'pending')->where('division', 'AFD')->get()->count();
+        $exstats['endorsedTOD'] = External::withoutTrashed()->where('status', 'pending')->where('division', 'TOD')->get()->count();
+        $activeRequests = External::withoutTrashed()->where('status', '!=', 'completed');
+        if (!auth()->user()->canMonitorRequests()) {
+            $activeRequests->where(function ($query) {
+                $query->where('creator_id', auth()->id())
+                    ->orWhere('assigned_to', auth()->id())
+                    ->orWhereHas('histories', function ($q) {
+                        $q->where('user_id', auth()->id());
+                    });
+            });
+        }
+        $activeRequests = $activeRequests->orderBy('updated_at', 'desc')->get();
+        $authTasks = External::withoutTrashed()->whereIn('status', ['assigned', 'accepted'])->where('assigned_to', auth()->id())->get()->count();
+        
         $stats = Document::selectRaw("
             COUNT(CASE WHEN EXISTS (
                 SELECT 1 FROM document_participants dp
@@ -38,16 +49,6 @@ class DashboardController extends Controller
         ->first()
         ->toArray();
 
-        $activeRequests = External::withoutTrashed()->where('status', '!=', 'completed');
-        if (!auth()->user()->canMonitorRequests()) {
-            $activeRequests->where(function ($query) {
-                $query->where('creator_id', auth()->id())
-                    ->orWhereHas('histories', function ($q) {
-                        $q->where('user_id', auth()->id());
-                    });
-            });
-        }
-        $activeRequests = $activeRequests->orderBy('updated_at', 'desc')->get();
         $actionRequired = Document::whereHas('participants', function ($query) {
             $query->where('user_id', Auth::id())
                 ->where('status', 'active')
@@ -68,6 +69,7 @@ class DashboardController extends Controller
         return view('dashboard', [
             'stats'           => $stats,
             'exstats'         => $exstats, 
+            'authTasks'         => $authTasks, 
             'activeRequests'  => $activeRequests,
             'actionRequired'  => $actionRequired,
             'needsRevision'   => $needsRevision,

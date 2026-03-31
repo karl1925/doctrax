@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\{External, ExternalHistory, ExternalAttachment, User, Setting};
+use App\Models\{External, ExternalHistory, ExternalAttachment, User, Setting, Partner};
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
@@ -32,6 +32,7 @@ class ExternalController extends Controller
         $externals = $this->filterExternals($request, function ($query) {
             $query->where('status', '!=', 'completed');
             $query->where('status', '!=', 'cancelled');
+            $query->where('assigned_to', '!=', auth()->id());
             if (!auth()->user()->canMonitorRequests()) {
                 $query->where(function ($q) {
                     $q->where('creator_id', auth()->id())
@@ -159,15 +160,17 @@ class ExternalController extends Controller
 
     public function create()
     {
-        return view('externals.create');
+        $partners = Partner::withoutTrashed()->get();
+        return view('externals.create', compact('partners'));
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
-            'agency' => 'required|string|max:255',
-            'contact' => 'required|string|max:255',
+            'partner' => 'required',
+            'email' => 'string|max:255',
+            'contactNo' => 'string|max:255',
             'description' => 'nullable|string|max:1000',
             'division' => 'required|in:TOD,AFD',
             'reference' => 'nullable|string|max:1000',
@@ -179,8 +182,9 @@ class ExternalController extends Controller
             $external = External::create([
                 'creator_id'  => Auth::id(),
                 'subject'     => $request->subject,
-                'agency'      => $request->agency,
-                'contact'     => $request->contact,
+                'partner_id'      => $request->partner,
+                'email'     => $request->email,
+                'contactNo'     => $request->contact,
                 'description' => $request->description,
                 'reference'   => $request->reference,
                 'priority'    => $request->priority,
@@ -209,18 +213,9 @@ class ExternalController extends Controller
                 $recipient = User::find($afd);
             }
             if ($recipient->id !== Auth::id()) {
-                $recipient->notify(new NotifyChief($external), $recipient->preference?->external_email_notify_received ?? true, auth()->id());
+                $recipient->notify(new NotifyChief($external, $recipient->preference?->external_email_notify_received ?? true, auth()->id()));
             }
-            // $monitorers = User::withoutTrashed()
-            //     ->where('id', '!=', Auth::id())
-            //     ->whereHas('settings', function($query) {
-            //         $query->where('setting', 'monitorer');
-            //     })
-            //     ->get();
-            // foreach ($monitorers as $monitor) {
-            //     $monitor->notify(new NotifyNew($external, $monitor->preference?->external_email_notify_received ?? true, auth()->id()));
-            // }
-            ExternalHistoryController::log(auth()->id(), $external->id, 'Received and endorsed to ' . $request->division);
+            ExternalHistoryController::log(auth()->id(), $external->id, 'Received and Endorsed', null, $request->division);
             return redirect()->route('externals.monitoring')
                 ->with('success', 'The request has been received and endorsed to ' . $request->division . ' successfully.');
         } catch (\Exception $e) {
@@ -231,7 +226,12 @@ class ExternalController extends Controller
     public function verify($id)
     {
         $external = External::withTrashed()
-            ->with(['attachments', 'histories', 'creator', 'assignedTo'])
+            ->with([
+                'attachments',
+                'histories' => function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                }
+            ])
             ->findOrFail($id);
         auth()->user()->unreadNotifications
             ->where('data.request_id', $external->id)
@@ -292,16 +292,24 @@ class ExternalController extends Controller
     }
     public function show($id) {
         $external = External::withTrashed()
-            ->with(['attachments', 'histories'])
+            ->with([
+                'attachments',
+                'histories' => function ($query) {
+                    $query->orderBy('created_at', 'desc');
+                }
+            ])
             ->findOrFail($id);
         auth()->user()->unreadNotifications
             ->where('data.request_id', $external->id)
             ->each(function ($notification) {
                 $notification->markAsRead();
             });
+        
         if($external->assigned_to !== auth()->id() && !$external->histories->where('user_id', auth()->id())->count() 
             && $external->creator_id !== auth()->id()) {
-            abort(403, 'You are not authorized to access this request.');
+            if(auth()->id()->canMonitorRequests()) {
+                abort(403, 'You are not authorized to access this request.');
+            }
         }
         return view('externals.show', compact('external'));
     }
@@ -312,9 +320,8 @@ class ExternalController extends Controller
             'remarks' => 'required|string|max:2000',
         ]);
 
-        $external = External::findOrFail($id);
-        $external->updated_at = now();
-        $external->save();
+        $external = External::with('creator')->findOrFail($id);
+        $external->touch();
         ExternalHistory::create([
             'external_id' => $external->id,
             'user_id'     => Auth::id(),
@@ -322,18 +329,27 @@ class ExternalController extends Controller
             'remarks'     => $request->remarks,
         ]);
         if ($external->creator_id !== Auth::id()) {
-            $creator = User::find($external->creator_id);
-            $creator->notify(new NotifyUpdate($external, $creator->preference?->external_email_notify_updated ?? true, auth()->id()));
+            $notification = $external->creator->notifications()
+                ->where('type', NotifyUpdate::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->creator->notify(
+                    new NotifyUpdate($external,
+                    $external->creator->preference?->external_email_notify_updated ?? true,
+                    auth()->id())
+                );
+            }
         }
-        // $monitorers = User::withoutTrashed()
-        //     ->where('id', '!=', Auth::id())
-        //     ->whereHas('settings', function($query) {
-        //         $query->where('setting', 'monitorer');
-        //     })
-        //     ->get();
-        // foreach ($monitorers as $monitor) {
-        //     $monitor->notify(new NotifyUpdate($external, $monitor->preference?->external_email_notify_updated ?? true, auth()->id()));
-        // }
         ExternalHistoryController::log(auth()->id(), $external->id, 'Update Added', $request->remarks);
         return back()->with('success', 'Update added successfully.');
     }
@@ -361,19 +377,28 @@ class ExternalController extends Controller
             $count++;
         }
         if ($external->creator_id !== Auth::id()) {
-            $creator = User::find($external->creator_id);
-            $creator->notify(new NotifyAttached($external, $creator->preference?->external_email_notify_updated ?? true, auth()->id()));
+            $notification = $external->creator->notifications()
+                ->where('type', NotifyAttached::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->creator->notify(
+                    new NotifyAttached($external,
+                    $external->creator->preference?->external_email_notify_updated ?? true,
+                    auth()->id())
+                );
+            }
         }
-        // $monitorers = User::withoutTrashed()
-        //     ->where('id', '!=', Auth::id())
-        //     ->whereHas('settings', function($query) {
-        //         $query->where('setting', 'monitorer');
-        //     })
-        //     ->get();
-        // foreach ($monitorers as $monitor) {
-        //     $monitor->notify(new NotifyUpdate($external, $monitor->preference?->external_email_notify_updated ?? true, auth()->id()));
-        // }
-        ExternalHistoryController::log(auth()->id(), $external->id, 'Attached', $attach);
+        ExternalHistoryController::log(auth()->id(), $external->id, 'Attached', $attach, $count);
         return back()->with('success', "Attached {$count} file" . ($count > 1 ? 's' : '') . " successfully.");
     }
 
@@ -384,24 +409,51 @@ class ExternalController extends Controller
         $external->status = 'assigned';
         $external->save();
         $pers = User::find($request->personnel);
-        $pers->notify(new NotifyAssignee($external, $pers->preference?->external_email_notify_received ?? true, auth()->id()));
-        //notify creator if not the one assigning
-        if ($external->creator_id !== Auth::id()) {
-            $creator = User::find($external->creator_id);
-            $creator->notify(new NotifyAssigned($external, $creator->preference?->external_email_notify_updated ?? true, auth()->id()));
+        if ($pers->id !== Auth::id()) {
+            $notification = $pers->notifications()
+                ->where('type', NotifyAssignee::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $pers->notify(
+                    new NotifyAssignee($external,
+                    $external->creator->preference?->external_email_notify_updated ?? true,
+                    auth()->id())
+                );
+            }
         }
-        //notify monitorers
-        // $monitorers = User::withoutTrashed()
-        //     ->where('id', '!=', Auth::id())
-        //     ->whereHas('settings', function($query) {
-        //         $query->where('setting', 'monitorer');
-        //     })
-        //     ->get();
-        // foreach ($monitorers as $monitor) {
-        //     $monitor->notify(new NotifyAssigned($external, $monitor->preference?->external_email_notify_updated ?? true, auth()->id()));
-        // }
-        ExternalHistoryController::log(auth()->id(), $external->id, 'Assigned to ' . $pers->name, $request->remarks);
-
+        if ($external->creator->id !== Auth::id() && $pers->id !== $external->assigned_to) {
+            $notification = $external->creator->notifications()
+                ->where('type', NotifyAssigned::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->creator->notify(
+                    new NotifyAssigned($external,
+                    $external->creator->preference?->external_email_notify_updated ?? true,
+                    auth()->id())
+                );
+            }
+        }
+        ExternalHistoryController::log(auth()->id(), $external->id, 'Delegated', $request->remarks, $pers->id);
         return redirect()->route('externals.mytasks')
             ->with('success', 'Request ' . $external->reference . ' has been assigned to ' . $pers->name . '. Awaiting acceptance.');
     }
@@ -411,23 +463,30 @@ class ExternalController extends Controller
         $external = External::with('creator','assignedTo')->findOrFail($id);
         $external->status = 'accepted';
         $external->save();
-        //notify creator if not the one accepting
-        if ($external->creator_id !== Auth::id()) {
-            $creator = User::find($external->creator_id);
-            $creator->notify(new NotifyAccepted($external, $creator->preference?->external_email_notify_updated ?? true, auth()->id()));
+        if ($external->creator->id !== Auth::id()) {
+            $notification = $external->creator->notifications()
+                ->where('type', NotifyAccepted::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->creator->notify(
+                    new NotifyAccepted($external,
+                    $external->creator->preference?->external_email_notify_updated ?? true,
+                    auth()->id())
+                );
+            }
         }
-        // notify monitorers about acceptance
-        // $monitorers = User::withoutTrashed()
-        //     // ->where('id', '!=', Auth::id())
-        //     ->whereHas('settings', function($query) {
-        //         $query->where('setting', 'monitorer');
-        //     })
-        //     ->get();
-        // foreach ($monitorers as $monitor) {
-        //     $monitor->notify(new NotifyAccepted($external, $monitor->preference?->external_email_notify_updated ?? true, auth()->id()));
-        // }
         ExternalHistoryController::log(auth()->id(), $external->id, 'Accepted');
-        return redirect()->route('externals.mytasks')
+        return redirect()->back()
             ->with('success', 'Thanks for accepting the task.');
     }
 
@@ -436,56 +495,103 @@ class ExternalController extends Controller
         $external = External::findOrFail($id);
         $remarks = "";
         $prompt = "Thanks for accommodating this request";
-
         if ($external->target_date) {
             $target = Carbon::parse($external->target_date);
-
             if ($target < now()) {
                 $daysLate = $target->diffInDays(now());
-                $remarks = "$daysLate day" . ($daysLate > 1 ? 's' : '') . " late";
+                $remarks = round($daysLate,0) . " day" . ($daysLate > 1 ? 's' : '') . " late";
                 $prompt .= ", next time please pay attention to the target date. Delivered: $remarks";
             } elseif ($target > now()) {
                 $daysEarly = now()->diffInDays($target);
-                $remarks = "$daysEarly day" . ($daysEarly > 1 ? 's' : '') . " before the deadline";
+                $remarks = round($daysEarly,0) . " day" . ($daysEarly > 1 ? 's' : '') . " before the deadline";
                 $prompt = "Congratulations! You have delivered this task $remarks";
             } else {
                 $remarks = "on time";
                 $prompt = "Great! You have delivered this task on time";
             }
         }
-
         $external->status = 'completed';
         $external->save();
-
-        //notify creator if not the one completing
-        if ($external->creator_id !== Auth::id()) {
-            $creator = User::find($external->creator_id);
-            if ($creator && $creator->preference?->external_email_notify_completed) {
-                $creator->notify(new NotifyCompleted($external, $monitor->preference?->external_email_notify_completed ?? true, auth()->id()));
+        $tod = Setting::where('setting', 'todchief')->first()->user_id;
+        $afd = Setting::where('setting', 'afdchief')->first()->user_id;
+        if($external->division === "TOD") {
+            $chief = User::find($tod);
+        } else {
+            $chief = User::find($afd);
+        }
+        if ($chief->id !== Auth::id()) {
+            $notification = $chief->notifications()
+                ->where('type', NotifyCompleted::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $chief->notify(
+                    new NotifyCompleted($external,
+                    $chief->preference?->external_email_notify_completed ?? true,
+                    auth()->id())
+                );
             }
         }
-        //notify monitorers
-        // $role = 'monitorer'; // or dynamically
-        // $monitorers = User::whereHas('settings', function ($query) use ($role) {
-        //     $query->where('setting', $role);
-        // })->get();
-        // foreach ($monitorers as $monitor) {
-        //     if ($monitor->id !== Auth::id() && $monitor->preference?->external_email_notify_completed) {
-        //         $monitor->notify(new NotifyCompleted($external, $monitor->preference?->external_email_notify_completed ?? true, auth()->id()));
-        //     }
-        // }
+        if ($external->creator->id !== Auth::id()) {
+            $notification = $external->creator->notifications()
+                ->where('type', NotifyCompleted::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->creator->notify(
+                    new NotifyCompleted($external,
+                    $external->creator->preference?->external_email_notify_completed ?? true,
+                    auth()->id())
+                );
+            }
+        }
         ExternalHistoryController::log(auth()->id(), $external->id, 'Completed', $remarks);
-
         return redirect()->route('externals.mytasks')->with('success', $prompt);
     }
 
     public function followUp(Request $request, $id) {
         $external = External::findOrFail($id);
-        $assigned = $external->assignedTo;
-        if ($assigned) {
-            $assigned->notify(new NotifyFollowup($external, $assigned->preference?->external_email_notify_updated ?? true, $request->remarks ?? "", auth()->id()));
+        if ($external->assignedTo->id !== Auth::id()) {
+            $notification = $external->assignedTo->notifications()
+                ->where('type', NotifyFollowup::class)
+                ->whereJsonContains('data->request_id', $external->id)
+                ->first();
+            if ($notification) {
+                $data = $notification->data;
+                $data['message'] = $request->remarks ?? "";
+                $data['created_at'] = now();
+                $data['created_by'] = Auth::id();
+                $notification->update([
+                    'data' => $data,
+                    'updated_at' => now(),
+                    'read_at' => null
+                ]);
+            } else {
+                $external->assignedTo->notify(new NotifyFollowup($external,
+                    $external->assignedTo->preference?->external_email_notify_received ?? true,
+                    $request->remarks ?? "", auth()->id())
+                );
+            }
         }
-        ExternalHistoryController::log(auth()->id(), $external->id, 'Follow-Up', $request->remarks ?? "");
+        ExternalHistoryController::log(auth()->id(), $external->id, 'Followed-Up', $request->remarks ?? "");
         return redirect()->back()->with('success', 'Notification sent to the assigned personnel.');
     }
 

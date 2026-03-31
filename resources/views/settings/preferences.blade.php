@@ -29,9 +29,9 @@
 
                     <div class="space-y-4">
                         @foreach([
-                            'external_email_notify_received' => 'Notify when received',
-                            'external_email_notify_updated' => 'Notify when updated',
-                            'external_email_notify_completed' => 'Notify when completed',
+                            'external_email_notify_received' => 'Notify when task is received',
+                            'external_email_notify_updated' => 'Notify when task is updated',
+                            'external_email_notify_completed' => 'Notify when task is completed',
                         ] as $field => $label)
 
                             <div class="flex items-center justify-between">

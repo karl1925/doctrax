@@ -336,15 +336,7 @@
                                 <li class="step-item">
                                     <div class="step-num">5</div>
                                     <div class="step-text">
-                                        Depending on user access:
-                                        <ul class="list-disc ml-5 mt-1 text-sm">
-                                            <li>
-                                                Users with <strong>Receiver</strong> access only will see a <strong>Receive</strong> button. Submitting will forward the request to the <strong>Records</strong> section for validation.
-                                            </li>
-                                            <li>
-                                                Users with both <strong>Receiver</strong> and <strong>Forwarder</strong> access will see the <strong>Forward to ORD</strong> option, allowing the request to bypass validation and be forwarded directly to the <strong>ORD</strong>.
-                                            </li>
-                                        </ul>
+                                        Endorse the request to specific division.
                                     </div>
                                 </li>
                             </ul>
@@ -357,90 +349,7 @@
                     </details>
 
                     <details>
-                        <summary>2. Forwarding to ORD (Forwarders)</summary>
-                        <div class="details-content">
-                            <ul class="step-list">
-                                <li class="step-item">
-                                    <div class="step-num">1</div>
-                                    <div class="step-text">
-                                        From the <strong>Incoming Requests</strong> section (or via the Dashboard’s
-                                        <strong>Requests Snapshot – Records Office</strong> link), locate the request and
-                                        click the <strong>Review</strong> button found on the rightmost portion of the request card.
-                                    </div>
-                                </li>
-
-                                <li class="step-item">
-                                    <div class="step-num">2</div>
-                                    <div class="step-text">
-                                        Forwarders may attach additional documents or updates using the <strong>Attach Files</strong> or
-                                        <strong>Add Update</strong> options before forwarding.
-                                    </div>
-                                </li>
-
-                                <li class="step-item">
-                                    <div class="step-num">3</div>
-                                    <div class="step-text">
-                                        After careful review and validation, submit the request to the ORD by clicking
-                                        <strong>Forward to ORD</strong>. The request will then move to the
-                                        <strong>ORD Endorsement Queue</strong>.
-                                    </div>
-                                </li>
-                            </ul>
-
-                            <p class="mt-3 text-sm text-slate-600">
-                                <strong>Note:</strong> Users with <strong>Forwarder</strong> access may continue to monitor and 
-                                track the request’s progress through the <strong>Monitoring</strong> section in the sidebar.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details>
-                        <summary>3. Endorsing & Assigning Action Officers (Endorsers & Chiefs)</summary>
-                        <div class="details-content">
-                            <ul class="step-list">
-                                <li class="step-item">
-                                    <div class="step-num">1</div>
-                                    <div class="step-text">
-                                        From the <strong>For Endorsement</strong> section (or via the Dashboard’s
-                                        <strong>Requests Snapshot – Office of the Regional Director</strong> link), locate the request and
-                                        click the <strong>Review</strong> button found on the rightmost portion of the request card.
-                                    </div>
-                                </li>
-
-                                <li class="step-item">
-                                    <div class="step-num">2</div>
-                                    <div class="step-text">
-                                        Endorsers may attach additional documents or updates using the <strong>Attach Files</strong> or
-                                        <strong>Add Update</strong> options before forwarding.
-                                    </div>
-                                </li>
-                                            
-                                <li class="step-item">
-                                    <div class="step-num">3</div>
-                                    <div class="step-text">
-                                        After careful review, validation, and identification of the classification of the request, endorse the request by clicking
-                                        <strong>Endorse to Division</strong>. 
-                                    </div>
-                                </li>
-
-                                <li class="step-item">
-                                    <div class="step-num">4</div>
-                                    <div class="step-text">
-                                       Select the appropriate <strong>Division</strong> (AFD or TOD) who will handle the request. and click
-                                        <strong>Confirm</strong>. 
-                                    </div>
-                                </li>
-                            </ul>
-
-                            <p class="mt-3 text-sm text-slate-600">
-                                <strong>Note:</strong> Users with <strong>Endorser</strong> access may continue to monitor and 
-                                track the request’s progress through the <strong>Monitoring</strong> section in the sidebar.
-                            </p>
-                        </div>
-                    </details>
-
-                    <details>
-                        <summary>4. Action & Completion (Assigned Staff)</summary>
+                        <summary>2. Action & Completion (Assigned Staff)</summary>
                         <div class="details-content">
                             <ul class="step-list">
                                 <li class="step-item">
@@ -475,14 +384,6 @@
                         <p>Designated personnel authorized to review, validate, and log incoming requests from the public.</p>
                     </div>
                     <div class="entity-card">
-                        <h4>Forwarders</h4>
-                        <p>Authorized personnel who push validated requests to the Office of the Regional Director (ORD).</p>
-                    </div>
-                    <div class="entity-card">
-                        <h4>Endorsers</h4>
-                        <p>ORD staff who classify requests and endorse them to the appropriate technical or administrative division.</p>
-                    </div>
-                    <div class="entity-card">
                         <h4>Assigned Personnel</h4>
                         <p>The "Action Officers" responsible for executing the task, logging updates, and uploading proof of action.</p>
                     </div>
@@ -499,9 +400,6 @@
                         <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
                         <div class="flow-node">Receiver<br><small>Validate & Log</small></div>
                         <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                        <div class="flow-node">Forwarder<br><small>Send to ORD</small></div>
-                        <div class="flow-arrow"><i class="fa-solid fa-arrow-right"></i></div>
-                        <div class="flow-node">Endorser<br><small>Classify (AFD/TOD)</small></div>
                     </div>
                     <div class="flow-arrow"><i class="fa-solid fa-arrow-down"></i></div>
                     <div class="flow-row">

@@ -16,6 +16,7 @@ return new class extends Migration
             $table->foreignId('external_id')->constrained()->onDelete('cascade');
             $table->foreignId('user_id')->constrained();
             $table->string('action'); 
+            $table->string('param')->nullable(); 
             $table->text('remarks')->nullable();
             $table->timestamps();
 

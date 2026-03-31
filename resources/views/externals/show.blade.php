@@ -24,7 +24,15 @@
         </div>
     </div>
 
-    @if($external->status !== 'completed')
+    @php
+        $authIsAssignee = $external->assigned_to === auth()->id();
+        if($authIsAssignee) {
+            $show = $external->status === "accepted";
+        } else {
+            $show = $external->status !== "completed";
+        }
+    @endphp
+    @if($show) 
         <div class="flex flex-col mt-4 sm:flex-row gap-3 justify-center items-center">
             <button
                 type="button"

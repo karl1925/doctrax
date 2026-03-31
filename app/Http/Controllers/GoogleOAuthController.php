@@ -6,7 +6,7 @@ use Laravel\Socialite\Facades\Socialite;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use App\Notifications\AccountCreatedNotification;
+use App\Notifications\NotifyAccountCreated;
 use Illuminate\Http\Request;
 
 
@@ -78,7 +78,7 @@ class GoogleOAuthController extends Controller
                     'profile_photo_path' => $googleUser->avatar,
                 ]);
 
-                $newUser->notify(new AccountCreatedNotification($plainPassword));
+                $newUser->notify(new NotifyAccountCreated($plainPassword));
                 auth()->login($newUser);
 
                 $msg = "Your DocTrax account has been successfully created. We’ve sent your login credentials to your email. You can change your password anytime from your profile page.";

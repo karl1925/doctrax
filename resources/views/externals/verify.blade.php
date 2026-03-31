@@ -26,37 +26,41 @@
     @include('partials.external-header')
 
     <div class="grid grid-cols-1 mt-8 lg:grid-cols-12 gap-8 items-start">
-        <!-- Left Column: Request Details (8 Cols) -->
         <div class="lg:col-span-7 xl:col-span-8 space-y-8">
             @include('partials.details')
             @include('partials.attachments')
         </div>
 
-        <!-- Right Column: Attachments (4 Cols) -->
         <div class="lg:col-span-5 xl:col-span-4">
             <div class="sticky top-8 space-y-6">
                 @include('partials.histories')
             </div>
         </div>
     </div>
-
-    @if($external->status !== "assigned" && $external->status !== "completed") 
-    <div class="flex flex-col mt-4 sm:flex-row gap-3 justify-center items-center">
-        <button
-            type="button"
-            onclick="openAttachmentModal()"
-            class="inline-flex items-center justify-center rounded-lg bg-slate-600 gap-2 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
-            <i class="fa-solid fa-link"></i> Add Attachments
-        </button>
-
-        <button
-            type="button"
-            onclick="openUpdateModal()"
-            class="inline-flex items-center justify-center rounded-lg bg-blue-600 gap-2 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
-            <i class="fa-solid fa-comment-medical"></i>
-            Add Update
-        </button>
-    </div>
+    @php
+        $authIsAssignee = $external->assigned_to === auth()->id();
+        if($authIsAssignee) {
+            $show = $external->status === "accepted";
+        } else {
+            $show = $external->status !== "completed";
+        }
+    @endphp
+    @if($show) 
+        <div class="flex flex-col mt-4 sm:flex-row gap-3 justify-center items-center">
+            <button
+                type="button"
+                onclick="openAttachmentModal()"
+                class="inline-flex items-center justify-center rounded-lg bg-slate-600 gap-2 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-700">
+                <i class="fa-solid fa-link"></i> Add Attachments
+            </button>
+            <button
+                type="button"
+                onclick="openUpdateModal()"
+                class="inline-flex items-center justify-center rounded-lg bg-blue-600 gap-2 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-700">
+                <i class="fa-solid fa-comment-medical"></i>
+                Add Update
+            </button>
+        </div>
     @endif
 
     @include('partials.actions')

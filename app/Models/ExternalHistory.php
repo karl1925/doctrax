@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class ExternalHistory extends Model
 {
-    protected $fillable = ['external_id', 'user_id', 'action', 'remarks'];
+    protected $fillable = ['external_id', 'user_id', 'action', 'remarks', 'param'];
 
     public function user(): BelongsTo
     {
